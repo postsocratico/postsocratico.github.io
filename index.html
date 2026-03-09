@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Minimalist Feed</title>
+    <style>
+        /* The Base Vibe */
+        body {
+            background-color: #f4f4f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            padding: 3rem 1rem;
+            margin: 0;
+        }
+
+        /* The Collage Structure */
+        .collage-feed {
+            max-width: 1100px;
+            margin: 0 auto;
+            column-count: 3;
+            column-gap: 1.5rem;
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 800px) { .collage-feed { column-count: 2; } }
+        @media (max-width: 500px) { .collage-feed { column-count: 1; } }
+
+        /* The Floating Bubbles */
+        .bubble {
+            background: #ffffff;
+            border-radius: 24px; /* Makes them bubbly */
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            break-inside: avoid; /* Prevents bubbles from splitting across columns */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Hover effect for interactivity */
+        .bubble:hover {
+            transform: translateY(-5px) scale(1.02) !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Adding the organic collage "messiness" */
+        .bubble:nth-child(2n) { transform: rotate(-1.5deg); }
+        .bubble:nth-child(3n) { transform: rotate(1.5deg); margin-top: 1rem; }
+        .bubble:nth-child(5n) { transform: rotate(-0.5deg); }
+
+        /* Content Styling */
+        .bubble img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        .bubble p { line-height: 1.5; margin: 0 0 1rem 0; font-size: 0.95rem; }
+        .date { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+
+    <div class="collage-feed">
+        <div class="bubble">
+            <p class="date">Oct 12</p>
+            <p>Practicing the Prelude from Bach's Lute Suite in E Minor (BWV 996) today. The counterpoint is challenging but incredibly rewarding to map out on the fretboard.</p>
+        </div>
+
+        <div class="bubble">
+            <p class="date">Oct 10</p>
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400&auto=format&fit=crop" alt="Abstract tech network">
+            <p>Drafting up the paper proposal on green finance for the upcoming conference. Trying to tie the macro-economic incentives directly to micro-level compliance.</p>
+        </div>
+
+        <div class="bubble">
+            <p class="date">Oct 05</p>
+            <p>Thinking about the stability of equilibria in linear dynamic systems. The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
+        </div>
+    </div>
+
+</body>
+</html>
