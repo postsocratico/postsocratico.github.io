@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Minimalist Feed</title>
+    <title>Miguel Ángel</title>
     <style>
         /* The Base Vibe */
         body {
@@ -60,26 +60,125 @@
             margin-bottom: 1rem;
         }
         .bubble p { line-height: 1.5; margin: 0 0 1rem 0; font-size: 0.95rem; }
-        .date { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        /* Your existing date styling, updated for perfect alignment */
+        .date { 
+            font-size: 0.75rem; 
+            color: #888; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            display: flex; 
+            align-items: baseline; 
+            gap: 6px;
+            margin-bottom: 0.8rem; /* Gives space between the date and the post content */
+            line-height: 1;
+        }
+
+        /* Timestamp Styling */
+        .bubble .time {
+            font-size: 0.7rem;
+            color: #a1a1aa; /* A soft, muted gray */
+            font-weight: 400;
+            text-transform: lowercase;
+            letter-spacing: normal;
+            line-height: 1;
+        }
+
+        /* Star Rating Styling */
+        .bubble .stars { 
+            color: #f59e0b; /* A nice golden yellow */
+            font-size: 1.25rem; 
+            letter-spacing: 2px;
+            margin-bottom: 0.75rem; 
+        }
+        .bubble .movie-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 2.5rem 1rem 1rem;
+        }
+
     </style>
+
+
+
 </head>
+ 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ]
+        })">
+    </script>
+
 <body>
 
+    <header>
+        <h1>My own personal digital fiefdom.</h1>
+        <p>having an insta is for losers.</p>
+    </header>
+
     <div class="collage-feed">
+
         <div class="bubble">
-            <p class="date">Oct 12</p>
-            <p>Practicing the Prelude from Bach's Lute Suite in E Minor (BWV 996) today. The counterpoint is challenging but incredibly rewarding to map out on the fretboard.</p>
+            <p class="date">Mar 8 <span class="time">10:22 pm</span> </p>
+            <p>Algunos aprenden idiomas nuevos, hobbies y tendencias para subsanar su perenne ignorancia y su vana búsqueda de "conocimiento".
+                Yo aprendo para escapar de las masas, persiguiendo nichos cada vez más elitistas y con mayores barreras a la entrada. </p>
+        </div>
+
+
+        <div class="bubble">
+            <p class="date">Mar 8 <span class="time">2:34 pm</span></p>
+            <p>Cuando muera mi alma irá a Leipzig.</p>
         </div>
 
         <div class="bubble">
-            <p class="date">Oct 10</p>
-            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400&auto=format&fit=crop" alt="Abstract tech network">
-            <p>Drafting up the paper proposal on green finance for the upcoming conference. Trying to tie the macro-economic incentives directly to micro-level compliance.</p>
+            <p class="date">Mar 7 <span class="time">10:34 pm</span></p>
+            <p>Me gustan mucho los corridos tumbados. Es verdad que son el género más vitalicio de nuestros tiempos. La raza cósmica se hace presenete. 
+                La hispanidad y la diversidad genética conquistan el mundo.</p>
+        </div>
+
+
+         <div class="bubble">
+            <p class="date">Feb 28 <span class="time">2:15 pm</span></p>
+            <p>Ya extrañaba esta vida.</p>
+            <img src="assets/IMG_20260228_102951161_HDR.jpg" alt = "Biosfera Records">
+        </div>
+
+
+        <div class="bubble">
+            <p class="date">Feb 21 <span class="time">11:54 pm</span></p>
+            <div class="movie-title">Film Review: Hamnet (2025)</div>
+            <div class="stars">★★★☆☆</div>
+            <img src="https://upload.wikimedia.org/wikipedia/en/1/1f/Hamnet_film_poster.jpeg" alt="Film reel">
+            <p>No me gustó Hamnet. Cuando la morra sentada a mi lado empezó a llorar, sentí vergüenza ajena. Esto no es Oscar bait, es crying bait.
+                Esta película sufre de la recurrente maldición de mitificar la vida y obra de los artistas.
+            </p>
         </div>
 
         <div class="bubble">
-            <p class="date">Oct 05</p>
-            <p>Thinking about the stability of equilibria in linear dynamic systems. The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
+            <p class="date">Feb 21 <span class="time">4:58 am</span></p>
+            <p>Una visita al Centro de Sanciones Administrativas. </p>
+        </div>
+
+        <div class="bubble">
+            <p class="date">Feb 14 <span class="time">10:34 am</span></p>
+            <p>Me han jugado muchas bromas cínicas. Mandarme alv en San Valentín ha sido una de las mejores. No hard feelings.</p>
+        </div>
+
+        <div class="bubble">
+            <p class="date">Jan 05 <span class="time">3:21 am</span> </p>
+            <p>Thinking about the stability of equilibria in linear dynamic systems. 
+                The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
         </div>
     </div>
 
