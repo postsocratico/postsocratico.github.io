@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Miguel Ángel</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ]
+        })">
+    </script>
     <style>
         /* The Base Vibe */
         body {
@@ -29,18 +39,17 @@
         /* The Floating Bubbles */
         .bubble {
             background: #ffffff;
-            border-radius: 24px; /* Makes them bubbly */
+            border-radius: 24px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            break-inside: avoid; /* Prevents bubbles from splitting across columns */
+            break-inside: avoid;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: inline-block;
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Hover effect for interactivity */
         .bubble:hover {
             transform: translateY(-5px) scale(1.02) !important;
             box-shadow: 0 12px 32px rgba(0,0,0,0.08);
@@ -48,7 +57,6 @@
             position: relative;
         }
 
-        /* Adding the organic collage "messiness" */
         .bubble:nth-child(2n) { transform: rotate(-1.5deg); }
         .bubble:nth-child(3n) { transform: rotate(1.5deg); margin-top: 1rem; }
         .bubble:nth-child(5n) { transform: rotate(-0.5deg); }
@@ -61,7 +69,6 @@
         }
         .bubble p { line-height: 1.5; margin: 0 0 1rem 0; font-size: 0.95rem; }
         
-        /* Your existing date styling, updated for perfect alignment */
         .date { 
             font-size: 0.75rem; 
             color: #888; 
@@ -70,23 +77,21 @@
             display: flex; 
             align-items: baseline; 
             gap: 6px;
-            margin-bottom: 0.8rem; /* Gives space between the date and the post content */
+            margin-bottom: 0.8rem;
             line-height: 1;
         }
 
-        /* Timestamp Styling */
         .bubble .time {
             font-size: 0.7rem;
-            color: #a1a1aa; /* A soft, muted gray */
+            color: #a1a1aa;
             font-weight: 400;
             text-transform: lowercase;
             letter-spacing: normal;
             line-height: 1;
         }
 
-        /* Star Rating Styling */
         .bubble .stars { 
-            color: #f59e0b; /* A nice golden yellow */
+            color: #f59e0b;
             font-size: 1.25rem; 
             letter-spacing: 2px;
             margin-bottom: 0.75rem; 
@@ -97,26 +102,22 @@
             margin-bottom: 0.2rem;
         }
 
-        /* Header */
         header {
             text-align: center;
             padding: 2.5rem 1rem 1rem;
         }
 
-
         .year-divider {
             width: 100%;
             text-align: center;
-            font-size: 1.5rem;
+            font-size: 2rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             padding: 1rem 0;
-            column-span: all; /* breaks out of masonry columns */
+            column-span: all;
         }
 
-
-        /* Lightbox para hacer zoom en imágenes */
         #lightbox {
             display: none;
             position: fixed;
@@ -134,14 +135,6 @@
             object-fit: contain;
             border-radius: 8px;
         }
-
-        .bubble img {
-            cursor: zoom-in;
-        }
-
-
-
-        /* Profile section and payment */
 
         .profile-section {
             display: flex;
@@ -195,7 +188,6 @@
             color: #e0e0e0;
         }
 
-        /* Modal */
         #serf-modal {
             display: none;
             position: fixed;
@@ -267,23 +259,76 @@
             background: #444;
         }
 
+        /* Galería */
+        .gallery {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .gallery-track {
+            display: flex;
+            overflow: visible;
+            border-radius: 12px;
+            will-change: transform;
+        }
+
+        .gallery-track img {
+            min-width: 100%;
+            width: 100%;        /* ← force each image to exactly fill the track width */
+            flex-shrink: 0;     /* ← prevents images from squishing together */
+            max-height: 320px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 0;
+            cursor: default;
+        }
+
+        .gallery-arrow {
+            position: absolute;
+            top: calc(50% - 16px);
+            transform: none;
+            background: rgba(0,0,0,0.45);
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: background 0.2s;
+        }
+
+        .gallery-arrow:hover { background: rgba(0,0,0,0.7); }
+        .gallery-arrow.left  { left: 8px; }
+        .gallery-arrow.right { right: 8px; }
+
+        .gallery-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .gallery-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #555;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .gallery-dot.active { background: #aaa; }
     </style>
-
-
-
 </head>
- 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
-            ]
-        })">
-    </script>
-
 <body>
 
     <header>
@@ -318,11 +363,15 @@
     <div class="collage-feed">
 
         <div class="bubble">
+            <p class="date">Mar 9 <span class="time">9:20 am</span> </p>
+            <p>Ojalá hubiera descubierto más pronto la pasión por los vectores. </p>
+        </div>
+
+        <div class="bubble">
             <p class="date">Mar 8 <span class="time">10:22 pm</span> </p>
             <p>Algunos aprenden idiomas nuevos, hobbies y tendencias para subsanar su perenne ignorancia y su vana búsqueda de "conocimiento".
                 Yo aprendo para escapar de las masas, persiguiendo nichos cada vez más elitistas y con mayores barreras a la entrada. </p>
         </div>
-
 
         <div class="bubble">
             <p class="date">Mar 8 <span class="time">2:34 pm</span></p>
@@ -335,13 +384,19 @@
                 La hispanidad y la diversidad genética conquistan el mundo.</p>
         </div>
 
-
-         <div class="bubble">
-            <p class="date">Feb 28 <span class="time">2:15 pm</span></p>
+        <div class="bubble">
+            <p class="date">Feb 28, 2026 <span class="time">2:15 pm</span></p>
             <p>Ya extrañaba esta vida.</p>
-            <img src="assets/IMG_20260228_102951161_HDR.jpg" alt = "Biosfera Records">
+            <div class="gallery">
+                <button class="gallery-arrow left" onclick="slideGallery(this, -1)">&#8249;</button>
+                <div class="gallery-track">
+                    <img src="assets/IMG_20260228_102951161_HDR.jpg" alt="Biosfera Records">
+                    <img src="assets/selfie.jpg" alt="Biosfera Records 2">
+                </div>
+                <button class="gallery-arrow right" onclick="slideGallery(this, 1)">&#8250;</button>
+                <div class="gallery-dots"></div>
+            </div>
         </div>
-
 
         <div class="bubble">
             <p class="date">Feb 21 <span class="time">11:54 pm</span></p>
@@ -359,6 +414,19 @@
         </div>
 
         <div class="bubble">
+            <p class="date">Feb 15 <span class="time">3:37 pm</span></p>
+            <p> Wow. </p>
+            <iframe data-testid="embed-iframe" 
+            style="border-radius:12px" 
+            src="https://open.spotify.com/embed/track/02ppMPbg1OtEdHgoPqoqju?utm_source=generator" 
+            width="100%" 
+            height="352" 
+            frameBorder="0" 
+            allowfullscreen="" 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        <div class="bubble">
             <p class="date">Feb 14 <span class="time">10:34 am</span></p>
             <p>Me han jugado muchas bromas cínicas. Mandarme alv en San Valentín ha sido una de las mejores. No hard feelings. 😂</p>
         </div>
@@ -369,10 +437,32 @@
                 The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
         </div>
 
-
-        
         <div class="year-divider">2025</div>
 
+        <div class="bubble">
+            <p class="date">Dec 13 <span class="time">9:44 pm</span> </p>
+            <p> Estoy totalmente enamorado de Courtney Laplante. Locura y destrucción adornadas de vanidad. 
+                La mejor experiencia estética. </p>
+            <iframe data-testid="embed-iframe" 
+            style="border-radius:12px" 
+            src="https://open.spotify.com/embed/track/3FI0iAAAjmR31xpZEwbdys?utm_source=generator" 
+            width="100%" 
+            height="352" 
+            frameBorder="0" 
+            allowfullscreen="" 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"></iframe>
+        </div>
+
+        <div class="bubble">
+            <p class="date">Aug 16 <span class="time">6:25 pm</span></p>
+            <div class="movie-title">Film Review: Eddington (2025)</div>
+            <div class="stars">★★★★☆</div>
+            <img src="https://www.rogerebert.com/wp-content/uploads/2025/05/Eddington-2025-1-1-jpg.webp" alt="Hamnet">
+            <p> Ari Aster, eres mi cineasta favorito. 
+                Adoro la crudeza de las profecías que con sentido del humor recitas.
+            </p>
+        </div>
 
         <div class="bubble">
             <p class="date">Apr 11 <span class="time">2:00 pm</span> </p>
@@ -380,33 +470,76 @@
             <img src="assets/estanquillo.jpg" alt="Estanquillo">
         </div>
 
-
         <div class="bubble">
-            <p class="date">Aug 16 <span class="time">6:25 pm</span></p>
-            <div class="movie-title">Film Review: Eddington (2025)</div>
-            <div class="stars">★★★★☆</div>
-            <img src="https://www.rogerebert.com/wp-content/uploads/2025/05/Eddington-2025-1-1-jpg.webp" alt="Hamnet">
-            <p> Ari Aster, eres mi cineasta favorito.
-            </p>
+            <p class="date">Mar 14 <span class="time">2:10 am</span> </p>
+            <p> Temo que tengo una impetuosa afinidad por lo cíclico e intelectualmente degenerativo. </p>
+            <iframe data-testid="embed-iframe" 
+            style="border-radius:12px" 
+            src="https://open.spotify.com/embed/track/7BbdmhlX1kVgFrn1YlKJG2?utm_source=generator" 
+            width="100%" height="352" 
+            frameBorder="0" 
+            allowfullscreen="" 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
         </div>
 
     </div>
 
-
-
-
-
+    <!-- Lightbox -->
     <div id="lightbox" onclick="this.style.display='none'">
         <img id="lightbox-img">
     </div>
 
     <script>
+        // Gallery — runs after DOM is ready
+        document.querySelectorAll('.gallery').forEach(gallery => {
+            const track = gallery.querySelector('.gallery-track');
+            const dotsContainer = gallery.querySelector('.gallery-dots');
+            const imgs = track.querySelectorAll('img');
+            let current = 0;
+
+            // Build dots
+            imgs.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'gallery-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            });
+
+            function goTo(index) {
+                current = (index + imgs.length) % imgs.length;
+                track.style.transform = `translateX(-${current * 100}%)`;
+                track.style.transition = 'transform 0.3s ease';
+                dotsContainer.querySelectorAll('.gallery-dot').forEach((d, i) =>
+                    d.classList.toggle('active', i === current));
+            }
+
+            gallery._goTo = goTo;
+            gallery._getCurrent = () => current;
+
+            // Touch swipe
+            let startX = 0;
+            track.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive: true });
+            track.addEventListener('touchend', e => {
+                const diff = startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
+            });
+        });
+
+        function slideGallery(btn, dir) {
+            const gallery = btn.closest('.gallery');
+            gallery._goTo(gallery._getCurrent() + dir);
+        }
+
+        // Lightbox — only fires on imgs outside .gallery-track
         document.querySelectorAll('.bubble img').forEach(img => {
+            if (img.closest('.gallery-track')) return; // skip gallery images
+            img.style.cursor = 'zoom-in';
             img.addEventListener('click', () => {
                 document.getElementById('lightbox-img').src = img.src;
                 document.getElementById('lightbox').style.display = 'flex';
             });
         });
     </script>
+
 </body>
 </html>
