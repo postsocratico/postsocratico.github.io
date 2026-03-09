@@ -139,6 +139,134 @@
             cursor: zoom-in;
         }
 
+
+
+        /* Profile section and payment */
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 1.5rem auto 2rem;
+            padding: 0 1.5rem;
+        }
+
+        .profile-pic {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            flex: 1;
+        }
+
+        .display-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .username {
+            font-size: 0.78rem;
+            color: #888;
+        }
+
+        .signin-btn {
+            font-size: 0.75rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: all 0.2s;
+        }
+
+        .signin-btn:hover {
+            border-color: #aaa;
+            color: #e0e0e0;
+        }
+
+        /* Modal */
+        #serf-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin: 0;
+        }
+
+        .modal-sub {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0 0 0.5rem;
+        }
+
+        .modal-box input {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            color: #ccc;
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .modal-box input:focus {
+            border-color: #555;
+        }
+
+        .modal-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pay-btn {
+            margin-top: 0.5rem;
+            padding: 0.6rem;
+            border-radius: 8px;
+            border: none;
+            background: #333;
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .pay-btn:hover {
+            background: #444;
+        }
+
     </style>
 
 
@@ -162,6 +290,30 @@
         <h1>My own personal digital fiefdom.</h1>
         <p>having an insta is for losers.</p>
     </header>
+
+    <div class="profile-section">
+        <img src="assets/pfp.jpg" alt="Profile Picture" class="profile-pic">
+        <div class="profile-info">
+            <span class="display-name">Miguel Angel</span>
+            <span class="username">@postsocratico</span>
+        </div>
+        <button class="signin-btn" onclick="document.getElementById('serf-modal').style.display='flex'">Sign In</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="serf-modal" onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal-box">
+            <p class="modal-title">Become a serf.</p>
+            <p class="modal-sub">Rent a space in Miguel Angel's digital fief.</p>
+            <input type="text" placeholder="Full name">
+            <input type="text" placeholder="Card number">
+            <div class="modal-row">
+                <input type="text" placeholder="MM/YY">
+                <input type="text" placeholder="CVV">
+            </div>
+            <button class="pay-btn">Pay Tithe</button>
+        </div>
+    </div>
 
     <div class="collage-feed">
 
@@ -208,7 +360,7 @@
 
         <div class="bubble">
             <p class="date">Feb 14 <span class="time">10:34 am</span></p>
-            <p>Me han jugado muchas bromas cínicas. Mandarme alv en San Valentín ha sido una de las mejores. No hard feelings.</p>
+            <p>Me han jugado muchas bromas cínicas. Mandarme alv en San Valentín ha sido una de las mejores. No hard feelings. 😂</p>
         </div>
 
         <div class="bubble">
@@ -217,6 +369,8 @@
                 The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
         </div>
 
+
+        
         <div class="year-divider">2025</div>
 
 
@@ -225,6 +379,17 @@
             <p> Gracias por las fotos. </p>
             <img src="assets/estanquillo.jpg" alt="Estanquillo">
         </div>
+
+
+        <div class="bubble">
+            <p class="date">Aug 16 <span class="time">6:25 pm</span></p>
+            <div class="movie-title">Film Review: Eddington (2025)</div>
+            <div class="stars">★★★★☆</div>
+            <img src="https://www.rogerebert.com/wp-content/uploads/2025/05/Eddington-2025-1-1-jpg.webp" alt="Hamnet">
+            <p> Ari Aster, eres mi cineasta favorito.
+            </p>
+        </div>
+
     </div>
 
 
