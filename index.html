@@ -104,6 +104,41 @@
         }
 
 
+        .year-divider {
+            width: 100%;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1rem 0;
+            column-span: all; /* breaks out of masonry columns */
+        }
+
+
+        /* Lightbox para hacer zoom en imágenes */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: zoom-out;
+        }
+
+        #lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .bubble img {
+            cursor: zoom-in;
+        }
+
     </style>
 
 
@@ -182,6 +217,8 @@
                 The behavior of $\dot{x} = Ax$ when the eigenvalues of $A$ have strictly negative real parts is such an elegant mathematical certainty.</p>
         </div>
 
+        <div class="year-divider">2025</div>
+
 
         <div class="bubble">
             <p class="date">Apr 11 <span class="time">2:00 pm</span> </p>
@@ -193,5 +230,18 @@
 
 
 
+
+    <div id="lightbox" onclick="this.style.display='none'">
+        <img id="lightbox-img">
+    </div>
+
+    <script>
+        document.querySelectorAll('.bubble img').forEach(img => {
+            img.addEventListener('click', () => {
+                document.getElementById('lightbox-img').src = img.src;
+                document.getElementById('lightbox').style.display = 'flex';
+            });
+        });
+    </script>
 </body>
 </html>
