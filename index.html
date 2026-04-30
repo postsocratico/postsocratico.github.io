@@ -574,25 +574,4 @@
             track.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive: true });
             track.addEventListener('touchend', e => {
                 const diff = startX - e.changedTouches[0].clientX;
-                if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
-            });
-        });
-
-        function slideGallery(btn, dir) {
-            const gallery = btn.closest('.gallery');
-            gallery._goTo(gallery._getCurrent() + dir);
-        }
-
-        // Lightbox — only fires on imgs outside .gallery-track
-        document.querySelectorAll('.bubble img').forEach(img => {
-            if (img.closest('.gallery-track')) return; // skip gallery images
-            img.style.cursor = 'zoom-in';
-            img.addEventListener('click', () => {
-                document.getElementById('lightbox-img').src = img.src;
-                document.getElementById('lightbox').style.display = 'flex';
-            });
-        });
-    </script>
-
-</body>
-</html>
+                if (Math.abs(diff) > 40) goTo(current + (d
