@@ -13,36 +13,54 @@
         }
 
         body, html {
-            height: 100%;
             width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #050505; /* Deep minimalistic black */
+            background-color: #050505;
             color: #ffffff;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
-        /* Canvas Background for Graph Theory Theme */
+        /* Canvas Background */
         #graph-canvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.6;
+            opacity: 0.5;
+            pointer-events: none;
         }
 
-        /* Content Container */
-        .landing-container {
+        /* Layout Containers */
+        .page-wrapper {
             position: relative;
             z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             padding: 2rem;
-            max-width: 800px;
-            pointer-events: none; /* Lets clicks pass through to canvas if interactive */
+            width: 100%;
+        }
+
+        .content-section {
+            width: 100%;
+            max-width: 900px;
+            padding: 6rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, transparent, rgba(5,5,5,0.9) 10%, rgba(5,5,5,1) 100%);
         }
 
         /* Typography */
@@ -55,16 +73,38 @@
             color: #f8f9fa;
         }
 
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            color: #e4e4e7;
+            text-align: center;
+        }
+
         .subtitle {
             font-size: 1.1rem;
             font-weight: 400;
             letter-spacing: 0.05em;
-            color: #a1a1aa; /* Muted gray for minimalism */
+            color: #a1a1aa;
             line-height: 1.6;
             margin-bottom: 2.5rem;
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            text-align: center;
+        }
+
+        .highlight-text {
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: #d4d4d8;
+            line-height: 1.8;
+            text-align: center;
+            max-width: 750px;
+            margin-bottom: 4rem;
+            border-left: 1px solid #3f3f46;
+            border-right: 1px solid #3f3f46;
+            padding: 0 2rem;
         }
 
         .divider {
@@ -88,10 +128,139 @@
             backdrop-filter: blur(4px);
         }
 
+        /* Interactive Diagram / Widget */
+        .interactive-widget {
+            width: 100%;
+            border: 1px solid #27272a;
+            border-radius: 4px;
+            background: #09090b;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 4rem;
+        }
+
+        .widget-header {
+            background: #18181b;
+            padding: 1rem;
+            border-bottom: 1px solid #27272a;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid #3f3f46;
+            color: #a1a1aa;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            border-color: #52525b;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            background: #27272a;
+            border-color: #71717a;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 3rem 2rem;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metric-title {
+            font-family: monospace;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .metric-desc {
+            color: #a1a1aa;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .practical-use {
+            display: inline-block;
+            text-align: left;
+            background: #18181b;
+            padding: 1.5rem;
+            border-left: 3px solid #71717a;
+            border-radius: 0 4px 4px 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .practical-use strong {
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #71717a;
+            margin-bottom: 0.5rem;
+        }
+
+        .practical-use p {
+            color: #d4d4d8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* PGP Footer */
+        .pgp-footer {
+            width: 100%;
+            padding: 4rem 2rem;
+            background-color: #000000;
+            border-top: 1px solid #18181b;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pgp-block {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.75rem;
+            color: #52525b;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-width: 600px;
+            line-height: 1.4;
+        }
+
+        .pgp-highlight {
+            color: #71717a;
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Responsive Adjustments */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             h1 { font-size: 3rem; }
-            .subtitle { font-size: 1rem; }
+            h2 { font-size: 1.5rem; }
+            .subtitle, .highlight-text { font-size: 1rem; border: none; padding: 0; }
+            .widget-header { flex-direction: column; }
         }
     </style>
 </head>
@@ -99,24 +268,99 @@
 
     <canvas id="graph-canvas"></canvas>
 
-    <div class="landing-container">
-        <h1>Noeta</h1>
-        <p class="subtitle">Venture Capital & IT Data Infrastructure.<br>Empowering regional policy through deterministic data services.</p>
-        <div class="divider"></div>
-        <div class="status">System Under Construction</div>
+    <div class="page-wrapper">
+        <div class="hero-section">
+            <h1>Noeta</h1>
+            <p class="subtitle">Venture Capital & IT Data Infrastructure.<br>Empowering regional policy through deterministic data services.</p>
+            <div class="divider"></div>
+            <div class="status">System Under Construction</div>
+        </div>
+
+        <div class="content-section">
+            <h2>Welcome Data Driven Governance</h2>
+            <p class="highlight-text">
+                "Complex computation and network analysis can help redefine the path of economic development and urban planning."
+            </p>
+
+            <div class="interactive-widget">
+                <div class="widget-header">
+                    <button class="tab-btn active" onclick="openTab('degree')">Degree Centrality</button>
+                    <button class="tab-btn" onclick="openTab('betweenness')">Betweenness Centrality</button>
+                    <button class="tab-btn" onclick="openTab('modularity')">Community Detection</button>
+                </div>
+
+                <div id="degree" class="tab-content active">
+                    <div class="metric-title">Degree Centrality</div>
+                    <p class="metric-desc">Quantifies the total number of direct connections a specific entity or region holds within the broader network.</p>
+                    <div class="practical-use">
+                        <strong>Practical Application</strong>
+                        <p>Identify primary economic hubs or highly integrated urban zones. Regions with high degree centrality are prime targets for direct capital injection to maximize immediate local impact.</p>
+                    </div>
+                </div>
+
+                <div id="betweenness" class="tab-content">
+                    <div class="metric-title">Betweenness Centrality</div>
+                    <p class="metric-desc">Measures how frequently a node acts as the shortest bridging path between other disconnected nodes in the system.</p>
+                    <div class="practical-use">
+                        <strong>Practical Application</strong>
+                        <p>Pinpoint critical infrastructure or supply chain bottlenecks. Investing in high-betweenness regions stabilizes the broader economy by fortifying the bridges between disparate markets.</p>
+                    </div>
+                </div>
+
+                <div id="modularity" class="tab-content">
+                    <div class="metric-title">Community Detection</div>
+                    <p class="metric-desc">Algorithmic grouping of nodes into densely interconnected clusters, revealing the natural structural subdivisions of a network.</p>
+                    <div class="practical-use">
+                        <strong>Practical Application</strong>
+                        <p>Discover organic economic zones that transcend traditional administrative borders. Enables policymakers to design regional strategies based on actual trade and mobility flows rather than arbitrary lines.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="pgp-footer">
+            <div class="pgp-block">
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJk...
+<span class="pgp-highlight">&copy; 2026 Miguel and Rodrigo Hernández, Co-founders</span>
+bXJhSGVybmFuZGV6RGF0YURyaXZlbkdvdmVybmFuY2VTeXN0ZW1z
+Tm9ldGFWMjAyNlZlbnR1cmVDYXBpdGFsSU5UUkFOU0lUTmV0d29y
+azB4QzBBN0MwODRGNDkwM0Y2QkQ0QzJDNUIyQjZDNEMzQzhGNUE0
+RDBBNjIzODk0QzJDQkYyMjA0MjVFRDZDNkZGM0MzRTdFNEEzMzg4
+=X8qZ
+-----END PGP SIGNATURE-----
+            </div>
+        </footer>
     </div>
 
     <script>
+        // --- Widget Tab Logic ---
+        function openTab(tabId) {
+            // Hide all contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Show selected tab and highlight button
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- Canvas Graph Logic ---
         const canvas = document.getElementById('graph-canvas');
         const ctx = canvas.getContext('2d');
 
         let width, height;
         let nodes = [];
         
-        // Configuration
-        const connectionDistance = 150; // Max distance to draw an edge
-        const nodeCount = 80;           // Number of vertices
-        const nodeSpeed = 0.4;          // Drift speed
+        const connectionDistance = 150; 
+        const nodeCount = 80;           
+        const nodeSpeed = 0.3;          
 
         function resize() {
             width = canvas.width = window.innerWidth;
@@ -136,7 +380,6 @@
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Bounce off edges
                 if (this.x < 0 || this.x > width) this.vx *= -1;
                 if (this.y < 0 || this.y > height) this.vy *= -1;
             }
@@ -152,7 +395,6 @@
         function init() {
             resize();
             nodes = [];
-            // Scale node count based on screen size for mobile performance
             const adjustedNodeCount = window.innerWidth < 768 ? nodeCount / 2 : nodeCount;
             for (let i = 0; i < adjustedNodeCount; i++) {
                 nodes.push(new Node());
@@ -162,12 +404,10 @@
         function animate() {
             ctx.clearRect(0, 0, width, height);
 
-            // Update and draw nodes
             for (let i = 0; i < nodes.length; i++) {
                 nodes[i].update();
                 nodes[i].draw();
 
-                // Check connections (edges)
                 for (let j = i + 1; j < nodes.length; j++) {
                     const dx = nodes[i].x - nodes[j].x;
                     const dy = nodes[i].y - nodes[j].y;
@@ -178,9 +418,8 @@
                         ctx.moveTo(nodes[i].x, nodes[i].y);
                         ctx.lineTo(nodes[j].x, nodes[j].y);
                         
-                        // Opacity based on distance
                         const opacity = 1 - (distance / connectionDistance);
-                        ctx.strokeStyle = `rgba(113, 113, 122, ${opacity * 0.5})`;
+                        ctx.strokeStyle = `rgba(113, 113, 122, ${opacity * 0.4})`;
                         ctx.lineWidth = 0.8;
                         ctx.stroke();
                     }
@@ -191,7 +430,7 @@
 
         window.addEventListener('resize', () => {
             resize();
-            init(); // Reinitialize to distribute nodes properly
+            init(); 
         });
 
         init();
