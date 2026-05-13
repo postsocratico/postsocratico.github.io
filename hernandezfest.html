@@ -79,6 +79,8 @@
         z-index: 100;
         align-items: center;
         justify-content: center;
+        overflow-y: auto;
+        padding: 2vh 0;
     }
     #modal-overlay.open {
         display: flex;
@@ -89,8 +91,8 @@
         color: white;
         font-family: "Times New Roman", serif;
         padding: 2.5em 3em;
-        max-width: 480px;
-        width: 90%;
+        max-width: 92vw;
+        width: 92vw;
         text-align: left;
         position: relative;
     }
@@ -113,13 +115,16 @@
         letter-spacing: 0.05em;
     }
     .itinerario-desc {
-        font-size: 0.95em;
+        font-size: 1em;
         color: rgba(255,255,255,0.85);
     }
     .itinerario-nota {
-        font-size: 0.85em;
+        font-size: 1em;
         color: rgba(255,255,255,0.55);
         font-style: italic;
+    }
+    .itinerario-nota a {
+        color: rgba(255,255,255,0.7);
     }
     .itinerario-aviso {
         margin-top: 1.4em;
@@ -128,6 +133,9 @@
         font-size: 0.88em;
         color: rgba(255,255,255,0.7);
         line-height: 1.5;
+    }
+    .itinerario-aviso a {
+        color: rgba(255,255,255,0.85);
     }
     #modal-close {
         position: absolute;
@@ -141,6 +149,45 @@
         opacity: 0.6;
     }
     #modal-close:hover { opacity: 1; }
+
+    /* Mapas en fila horizontal */
+    .mapas-container {
+        display: flex;
+        gap: 14px;
+        width: 100%;
+        margin: 14px 0;
+    }
+    .mapa-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+    .mapa-label {
+        font-size: 0.82em;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+        color: rgba(255,255,255,0.75);
+        font-style: italic;
+    }
+    .mapa-wrap iframe {
+        display: block;
+        width: 100%;
+        height: 280px;
+        border: 0;
+    }
+
+    @media (max-width: 600px) {
+        .mapas-container {
+            flex-direction: column;
+        }
+        #modal-box {
+            padding: 2em 1.2em;
+        }
+        .title { font-size: 6vw; }
+        .text  { font-size: 3.5vw; }
+        .location { font-size: 3vw; white-space: normal; }
+        #itinerario-btn { font-size: 4vw; }
+    }
 
     #hint {
         position: absolute;
@@ -175,9 +222,9 @@
         <h2>ITINERARIO — 15 DE MAYO</h2>
 
         <div class="itinerario-item">
-            <div class="itinerario-hora">19:00 hrs — Precopeo</div>
-            <div class="itinerario-desc">Por asignar</div>
-            <div class="itinerario-nota">(se aceptan voluntarios)</div>
+            <div class="itinerario-hora">17:00 hrs — Precopeo</div>
+            <div class="itinerario-desc">Partida de pastel y mañanitas</div>
+            <div class="itinerario-nota">(rifa de una buzzball)</div>
         </div>
 
         <div class="itinerario-item">
@@ -185,27 +232,45 @@
             <div class="itinerario-desc">Monterrey 56, Roma Norte</div>
         </div>
 
-	<div class="itinerario-item">
+        <div class="itinerario-item">
             <div class="itinerario-hora">06:30 hrs — Nos vamos del Japan CDMX</div>
-	<div class="itinerario-nota">(si es que no nos corren antes)</div>
+            <div class="itinerario-nota">(si es que no nos corren antes)</div>
         </div>
 
-    <div class="itinerario-item">
+<div class="itinerario-item">
             <div class="itinerario-hora">08:30 hrs — After en caldos de Gallina "Luis"</div>
-	<div class="itinerario-nota">(para bajar la cruda)</div>
-    <div class="itinerario-nota"><a href="https://share.google/NC6u9mVX6PiwfG8he" target="_blank">Ubicación de los caldos de gallina</a></div>
-        </div>    
+            <div class="itinerario-nota">(para bajar la cruda)</div>
+            <div class="itinerario-nota">
+                <a href="https://share.google/NC6u9mVX6PiwfG8he" target="_blank">Ubicación de los caldos de gallina</a>
+            </div>
+        </div>
+
+        <!-- Mapas lado a lado -->
+        <div class="mapas-container">
+            <div class="mapa-wrap">
+                <div class="mapa-label">📍 Calle Totola 122 — Precopeo 17:00</div>
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3764.892408198813!2d-99.1703479!3d19.3304745!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce0018d9abe117%3A0x2c8f6dab66139759!2sTotola%20122%2C%20Pedregal%20de%20Santo%20Domingo%2C%20Coyoac%C3%A1n%2C%2004369%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1sen!2smx!4v1778644308389!5m2!1sen!2smx"
+                    allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+            <div class="mapa-wrap">
+                <div class="mapa-label">📍 Japan CDMX — 20:30</div>
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.1974754711796!2d-99.1673921246435!3d19.420585281856276!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff0001dde9a1%3A0xcc7cc39698d84a92!2sJapan%20CDMX!5e1!3m2!1ses-419!2smx!4v1778644449139!5m2!1ses-419!2smx"
+                    allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
 
         <div class="itinerario-aviso">
             <strong>Llevar efectivo para el cover.</strong><br>
             Si llegamos dentro de los primeros 100 entramos gratis.<br>
             Si no… valió verga, toca pagar.<br>
-            Página del passline para sáltarrse la fila ($150.00MXN): <a href="https://www.passline.com/productora/japan-cdmx" target="_blank">Link de passline</a>
+            Página del passline para saltarse la fila ($150.00MXN): <a href="https://www.passline.com/productora/japan-cdmx" target="_blank">Link de passline</a>
         </div>
     </div>
 </div>
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
