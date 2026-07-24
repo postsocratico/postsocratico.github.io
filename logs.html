@@ -3,78 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logs — Miguel</title>
+<title>logs.log — Miguel</title>
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-<div class="shell">
+<div class="ide">
+  <div class="ide-body">
 
-  <aside class="sidebar">
-    <div>
-      <a href="index.html" class="brand">
-        <svg class="graphmark" width="64" height="40" viewBox="0 0 64 40" aria-hidden="true">
-          <line x1="10" y1="10" x2="32" y2="20"/><line x1="32" y1="20" x2="54" y2="10"/>
-          <line x1="10" y1="10" x2="10" y2="30"/><line x1="32" y1="20" x2="54" y2="30"/>
-          <line x1="10" y1="30" x2="32" y2="20"/>
-          <circle cx="10" cy="10" r="3"/>
-          <circle cx="10" cy="30" r="3"/>
-          <circle cx="32" cy="20" r="3.5" class="active"/>
-          <circle cx="54" cy="10" r="3"/>
-          <circle cx="54" cy="30" r="3"/>
-        </svg>
-        <span class="brand-name">Miguel [Apellido]</span>
-        <span class="brand-role">economist / guitarist</span>
-      </a>
-      <nav class="section-nav" aria-label="Sections">
-        <a href="index.html">~/home</a>
-        <a href="curriculum.html">curriculum</a>
-        <a href="logs.html" aria-current="page">logs</a>
-        <a href="music.html">music</a>
-        <a href="writings.html">writings</a>
-      </nav>
+    <div class="activity-bar" aria-hidden="true">
+      <div class="activity-icon active" title="Explorer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="4"/><rect x="4" y="10" width="16" height="4"/><rect x="4" y="16" width="10" height="4"/></svg>
+      </div>
+      <div class="activity-icon" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
+      </div>
+      <div class="activity-icon" title="Source control">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="12" r="2.2"/><path d="M7 8.2V15.8"/><path d="M9.2 12H14.8"/></svg>
+      </div>
+      <div class="spacer"></div>
+      <div class="activity-icon" title="Miguel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.5-4 4.2-6 7-6s5.5 2 7 6"/></svg>
+      </div>
     </div>
-    <div class="sidebar-foot">
-      Perote, Veracruz, MX<br>
-      <a href="mailto:you@example.com">you@example.com</a><br>
-      <a href="https://github.com/yourhandle">github</a> ·
-      <a href="https://postsocratico.com">postsocratico.com</a>
-    </div>
-  </aside>
 
-  <main>
-    <p class="eyebrow">// 03 — logs</p>
-    <h1 class="page-title">Logs</h1>
-    <p class="page-sub">Small, dated, low-friction. Not a blog — closer to a commit history of what I'm thinking about.</p>
+    <aside class="explorer">
+      <p class="explorer-title">EXPLORER</p>
+      <details class="explorer-root" open>
+        <summary>MIGUEL</summary>
+        <nav class="file-list" aria-label="Sections">
+          <a class="file-item" href="index.html">index.html</a>
+          <a class="file-item" href="curriculum.html">curriculum.md</a>
+          <a class="file-item" href="logs.html" aria-current="page">logs.log</a>
+          <a class="file-item" href="music.html">music.yaml</a>
+          <a class="file-item" href="writings.html">writings.md</a>
+        </nav>
+      </details>
+      <div class="explorer-foot">
+        Perote, Veracruz, MX<br>
+        <a href="mailto:you@example.com">you@example.com</a><br>
+        <a href="https://github.com/yourhandle">github</a> ·
+        <a href="https://postsocratico.com">postsocratico.com</a>
+      </div>
+    </aside>
 
-    <div class="feed">
+    <div class="editor-col">
+      <div class="tab-bar" role="tablist" aria-label="Open files">
+        <a class="tab" href="index.html">index.html<span class="x">×</span></a>
+        <a class="tab" href="curriculum.html">curriculum.md<span class="x">×</span></a>
+        <a class="tab" href="logs.html" aria-current="page">logs.log<span class="x">×</span></a>
+        <a class="tab" href="music.html">music.yaml<span class="x">×</span></a>
+        <a class="tab" href="writings.html">writings.md<span class="x">×</span></a>
+      </div>
+      <p class="breadcrumb">miguel <span class="sep">›</span> <span class="cur">logs.log</span></p>
 
-      <div class="log">
-        <div class="log-meta"><span class="diff">+</span> 2026-07-20</div>
-        <div class="log-body">
-          <p>Reading Hausmann &amp; Hidalgo again with the <code>economiccomplexity</code> package open next to me. Trying to connect ECI/PCI to the Recipe Sovereignty Index — product space as a constraint on where the A-matrix can go next.</p>
+      <div class="editor">
+        <div class="editor-inner code">
+
+          <div class="line"><div class="line-content"><span class="tok-com">// small, dated, low-friction. not a blog — closer to a commit history</span></div></div>
+          <div class="line blank"><div class="line-content">&nbsp;</div></div>
+
+          <div class="line"><div class="line-content">
+            <div class="log-entry">
+              <span class="tok-str">[2026-07-20]</span>
+              <p>Reading Hausmann &amp; Hidalgo again with the <code>economiccomplexity</code> package open next to me. Trying to connect ECI/PCI to the Recipe Sovereignty Index — product space as a constraint on where the A-matrix can go next.</p>
+            </div>
+          </div></div>
+          <div class="line blank"><div class="line-content">&nbsp;</div></div>
+
+          <div class="line"><div class="line-content">
+            <div class="log-entry">
+              <span class="tok-str">[2026-07-12]</span>
+              <p>Back from Bordeaux. SASE went well — good pushback on the centrality vs. renewable-share result that I need to address before the next draft.</p>
+            </div>
+          </div></div>
+          <div class="line blank"><div class="line-content">&nbsp;</div></div>
+
+          <div class="line"><div class="line-content">
+            <div class="log-entry">
+              <span class="tok-str">[2026-06-29]</span>
+              <p>Finally got sectoral fixed effects working cleanly in <code>fixest::feols()</code> for the thesis. Out-degree centrality holds up. Now I need a real answer for the jury on why graph methods beat Miller–Blair here.</p>
+            </div>
+          </div></div>
+
         </div>
       </div>
-
-      <div class="log">
-        <div class="log-meta"><span class="diff">+</span> 2026-07-12</div>
-        <div class="log-body">
-          <p>Back from Bordeaux. SASE went well — good pushback on the centrality vs. renewable-share result that I need to address before the next draft.</p>
-        </div>
-      </div>
-
-      <div class="log">
-        <div class="log-meta"><span class="diff">+</span> 2026-06-29</div>
-        <div class="log-body">
-          <p>Finally got sectoral fixed effects working cleanly in <code>fixest::feols()</code> for the thesis. Out-degree centrality holds up. Now I need a real answer for the jury on why graph methods beat Miller–Blair here.</p>
-        </div>
-      </div>
-
     </div>
-  </main>
+  </div>
 
+  <div class="status-bar">
+    <div class="status-left">
+      <span class="branch">main</span>
+      <span>logs.log</span>
+    </div>
+    <div class="status-right">
+      <span data-ln>Ln 1, Col 1</span>
+      <span class="encoding">UTF-8</span>
+      <span class="lang">Log</span>
+    </div>
+  </div>
 </div>
+
+<script src="assets/js/main.js"></script>
 </body>
 </html>
