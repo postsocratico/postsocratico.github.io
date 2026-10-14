@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetLab — Interactive Graph & Centrality Analysis Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom subtle scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Matrix input styling */
+        input.matrix-cell::-webkit-outer-spin-button,
+        input.matrix-cell::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input.matrix-cell {
+            -moz-appearance: textfield;
+            transition: all 0.12s ease;
+        }
+        input.matrix-cell:focus {
+            outline: 2px solid #4f46e5;
+            outline-offset: -1px;
+            z-index: 10;
+        }
+        .canvas-grid-bg {
+            background-color: #ffffff;
+            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 22px 22px;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.97) translateY(6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate {
+            animation: modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .tutorial-pane {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #tutorialHighlightRing {
+            transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.35), 0 12px 32px -4px rgba(15, 23, 42, 0.25);
+        }
+        #tutorialCard {
+            transition: top 0.32s cubic-bezier(0.16, 1, 0.3, 1), left 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 select-none">
+
+    <header class="bg-white border-b border-slate-200 shadow-xs sticky top-0 z-30">
+        <!-- Global Network Summary Stripe -->
+        <div id="globalSummaryStripe" class="bg-slate-100/90 border-b border-slate-200/80 px-4 lg:px-6 py-2">
+            <div class="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-600 text-white text-xs font-bold shadow-xs">
+                        <i class="ph-bold ph-graph"></i>
+                    </span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Global Network Summary</span>
+                    <span id="graphTypeBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        Undirected
+                    </span>
+                </div>
+
+                <!-- 4 Key Global Metrics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 lg:gap-8 w-full lg:w-auto">
+                    <!-- Diameter -->
+                    <div class="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                        <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-arrows-out-line-horizontal text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Diameter</div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="statDiameter" class="mono text-sm font-bold text-slate-800">0</span>
+                                <span class="text-[10px] text-slate-400">hops</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Number of Edges -->
+                    <div class="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                        <div class="w-7 h-7 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-git-commit text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Edges / Node</div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span id="statAvgEdges" class="mono text-sm font-bold text-slate-800">0.00</span>
+                                <span id="statTotalEdges" class="text-[10px] text-slate-500 mono">(0 total)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Density -->
+                    <div class="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                        <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-grid-four text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Network Density</div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="statDensity" class="mono text-sm font-bold text-slate-800">0.000</span>
+                                <span id="statClustersCount" class="text-[10px] text-emerald-600 font-medium">1 cluster</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Geodesic Distance -->
+                    <div class="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                        <div class="w-7 h-7 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-path text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Geodesic Dist</div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="statAvgGeodesic" class="mono text-sm font-bold text-slate-800">0.000</span>
+                                <span class="text-[10px] text-slate-400">path len</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Control Bar -->
+        <div class="px-4 lg:px-6 py-2.5">
+            <div class="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+                <!-- Dimension Control & Presets -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                        <label for="dimSlider" class="text-xs font-semibold text-slate-700 whitespace-nowrap">
+                            Matrix Size (<span class="mono font-bold text-indigo-600" id="dimValueLabel">8×8</span>):
+                        </label>
+                        <input id="dimSlider" type="range" min="2" max="15" value="8" 
+                            class="w-24 sm:w-32 accent-indigo-600 cursor-pointer h-1.5 bg-slate-300 rounded-lg">
+                        <div class="flex items-center gap-1">
+                            <button id="btnDimDec" title="Decrease Dimension" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">−</button>
+                            <button id="btnDimInc" title="Increase Dimension" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Topology Presets -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-medium text-slate-400 mr-0.5 hidden xl:inline">Presets:</span>
+                        <button onclick="applyPreset('clustered')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Clustered
+                        </button>
+                        <button onclick="applyPreset('smallworld')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Small-World
+                        </button>
+                        <button onclick="applyPreset('star')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Star
+                        </button>
+                        <button onclick="applyPreset('ring')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Ring
+                        </button>
+                        <button onclick="applyPreset('random')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Random
+                        </button>
+                        <button onclick="applyPreset('clear')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition shadow-2xs cursor-pointer">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Centrality Selector & Prominent "Metric" Button -->
+                <div class="flex flex-wrap items-center gap-3 ml-auto">
+                    <div id="centralitySelectorGroup" class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                        <span class="text-[11px] font-semibold text-slate-500 px-2 hidden sm:inline">Color By:</span>
+                        <button data-centrality="eigenvector" onclick="setCentralityMode('eigenvector')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-indigo-700 shadow-xs">
+                            Eigenvector
+                        </button>
+                        <button data-centrality="katz" onclick="setCentralityMode('katz')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            Katz
+                        </button>
+                        <button data-centrality="closeness" onclick="setCentralityMode('closeness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            Closeness
+                        </button>
+                        <button data-centrality="betweenness" onclick="setCentralityMode('betweenness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            Betweenness
+                        </button>
+                    </div>
+
+                    <!-- Prominent Clickable "Metric" Button -->
+                    <button id="btnOpenMetrics" onclick="openMetricModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition cursor-pointer">
+                        <i class="ph-bold ph-table text-base"></i>
+                        <span>Metric</span>
+                    </button>
+
+                    <!-- Replay Tutorial Button -->
+                    <button id="btnStartTutorial" onclick="startTutorial()" title="Replay Interactive Walkthrough" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 font-semibold text-xs sm:text-sm shadow-2xs transition cursor-pointer">
+                        <i class="ph-bold ph-question text-base text-indigo-600"></i>
+                        <span class="hidden sm:inline">Tutorial</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-[1800px] w-full mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+        
+        <!-- LEFT PANEL: Interactive Adjacency Matrix Input -->
+        <section id="matrixPanelSection" class="lg:col-span-5 xl:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col overflow-hidden">
+            <!-- Panel Header -->
+            <div class="p-3.5 sm:p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="ph-bold ph-matrix-logo text-indigo-600 text-base"></i>
+                        Adjacency Matrix <span class="mono text-xs font-medium text-slate-500">A[i, j]</span>
+                    </h2>
+                    <p class="text-[11px] text-slate-500 mt-0.5">
+                        Click a cell to toggle <span class="mono font-semibold text-slate-700">0/1</span> or type custom numeric weight
+                    </p>
+                </div>
+
+                <!-- Matrix Manipulation Controls -->
+                <div class="flex items-center gap-2">
+                    <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-2xs">
+                        <input id="chkSymmetric" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
+                        <span>Mirror <span class="text-slate-400">(Undirected)</span></span>
+                    </label>
+                    <button onclick="symmetrizeMatrix()" title="Force A[i,j] = A[j,i]" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
+                        Symmetrize
+                    </button>
+                </div>
+            </div>
+
+            <!-- Matrix Grid Container -->
+            <div class="flex-1 p-3 sm:p-4 overflow-auto flex items-center justify-center bg-slate-50/30 min-h-[340px]">
+                <div id="matrixContainer" class="inline-block bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Matrix Footer / Quick Help & Node Inspector -->
+            <div class="p-3 sm:px-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-xs bg-indigo-100 border border-indigo-400 inline-block"></span>
+                        Active Edge (<span class="mono">w &gt; 0</span>)
+                    </span>
+                    <span class="inline-flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-xs bg-slate-100 border border-slate-300 inline-block"></span>
+                        No Edge (<span class="mono">0</span>)
+                    </span>
+                </div>
+                <div id="matrixHoverInfo" class="mono text-[11px] text-slate-500">
+                    Hover or edit any cell A[row, col]
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Real-Time Graph & Cluster Visualization Canvas -->
+        <section id="graphPanelSection" class="lg:col-span-7 xl:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col overflow-hidden min-h-[480px] lg:min-h-[600px] relative">
+            <!-- Canvas Top Overlay Toolbar -->
+            <div class="p-3 sm:px-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60 z-10">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="ph-bold ph-share-network text-indigo-600 text-base"></i>
+                        Real-Time Topology &amp; Community Clusters
+                    </h2>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer">
+                        <input id="chkShowClusters" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
+                        <span>Dotted Clusters</span>
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer">
+                        <input id="chkPhysics" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
+                        <span>Force Layout</span>
+                    </label>
+                    <button onclick="arrangeCircularLayout()" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                        <i class="ph ph-circle-dashed mr-0.5"></i> Circle
+                    </button>
+                    <button onclick="resetCameraView()" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                        <i class="ph ph-corners-out mr-0.5"></i> Fit
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive HTML5 Canvas Wrapper -->
+            <div id="canvasWrapper" class="flex-1 relative canvas-grid-bg overflow-hidden">
+                <canvas id="graphCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+                <!-- Floating Centrality Color Legend Overlay -->
+                <div class="absolute bottom-3 left-3 right-3 sm:right-auto bg-white/95 backdrop-blur-xs border border-slate-200/90 rounded-xl p-2.5 shadow-sm flex flex-col gap-1.5 max-w-xs pointer-events-none">
+                    <div class="flex items-center justify-between gap-4">
+                        <span id="legendTitle" class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                            Eigenvector Centrality
+                        </span>
+                        <span class="text-[10px] font-medium text-slate-400">Normalized [0, 1]</span>
+                    </div>
+                    <!-- Gradient Bar -->
+                    <div class="h-2.5 w-full rounded-full border border-slate-200/60"
+                         style="background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 28%, #10b981 55%, #f59e0b 78%, #e11d48 100%);">
+                    </div>
+                    <div class="flex justify-between text-[10px] mono font-medium text-slate-500">
+                        <span id="legendMin">Min: 0.000</span>
+                        <span>Med</span>
+                        <span id="legendMax">Max: 1.000</span>
+                    </div>
+                </div>
+
+                <!-- Floating Hovered Node Tooltip Card -->
+                <div id="nodeTooltip" class="hidden absolute top-3 right-3 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-3 shadow-md w-56 pointer-events-none z-20">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-1.5 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span id="ttColorDot" class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span>
+                            <span id="ttNodeName" class="font-bold text-xs text-slate-800">Node 1</span>
+                        </div>
+                        <span id="ttClusterBadge" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Cluster #1</span>
+                    </div>
+                    <div class="space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">In / Out Degree:</span><span id="ttInOut" class="mono font-semibold text-slate-800">0 / 0</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Eigenvector:</span><span id="ttEigen" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Katz:</span><span id="ttKatz" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Closeness:</span><span id="ttClose" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Betweenness:</span><span id="ttBetween" class="mono font-semibold text-slate-800">0.000</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Footer Bar -->
+            <div class="p-2.5 sm:px-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                <div class="flex items-center gap-3">
+                    <span><i class="ph-bold ph-hand-grabbing text-slate-400 mr-1"></i>Drag nodes to reposition</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span class="hidden sm:inline"><i class="ph-bold ph-selection-all text-slate-400 mr-1"></i>Dotted contours enclose detected Louvain/Modularity clusters</span>
+                </div>
+                <div id="clusterSummaryText" class="font-medium text-slate-600">
+                    2 Communities Detected
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="metricModalBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden items-center justify-center p-3 sm:p-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden modal-animate">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                        <i class="ph-bold ph-chart-bar text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Node Centrality Metrics &amp; Degree Distribution</h3>
+                        <p class="text-xs text-slate-500">Real-time node-level topological table (including In/Out Degree) and degree frequency histogram</p>
+                    </div>
+                </div>
+                <button onclick="closeMetricModal()" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition cursor-pointer">
+                    <i class="ph-bold ph-x text-base"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-5 overflow-y-auto space-y-6 flex-1">
+                
+                <!-- Top Section: Degree Distribution Histogram -->
+                <div class="bg-slate-50/70 rounded-xl border border-slate-200 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <i class="ph-bold ph-chart-bar-horizontal text-indigo-600"></i>
+                                Degree Distribution Histogram <span class="mono font-normal text-slate-400">P(k)</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-500">Frequency of nodes by Total Degree, In-Degree, and Out-Degree</p>
+                        </div>
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
+                            <button onclick="setHistogramMode('all')" id="histBtnAll" class="px-2.5 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700 cursor-pointer">Grouped (Total/In/Out)</button>
+                            <button onclick="setHistogramMode('total')" id="histBtnTotal" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Total Degree Only</button>
+                        </div>
+                    </div>
+                    <div class="w-full h-56 bg-white rounded-lg border border-slate-200 p-3 relative">
+                        <canvas id="histogramCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bottom Section: Comprehensive Node Metrics Table -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="ph-bold ph-table text-indigo-600"></i>
+                            Node-Level Centrality &amp; Degree Table
+                        </h4>
+                        <span class="text-[11px] text-slate-500">Click any column header to sort nodes</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th onclick="sortMetricTable('id')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600">Node <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('cluster')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600">Cluster <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('inDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">In-Degree <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('outDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Out-Degree <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('totalDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Total Deg <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('eigenvector')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Eigenvector <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('katz')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Katz <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('closeness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Closeness <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('betweenness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Betweenness <i class="ph ph-caret-up-down"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricTableBody" class="divide-y divide-slate-200 text-xs mono">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <div class="text-xs text-slate-500">
+                    Centrality scores are normalized for direct comparison across topologies.
+                </div>
+                <button onclick="closeMetricModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition cursor-pointer">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE SPOTLIGHT TUTORIAL OVERLAY -->
+    <div id="tutorialOverlay" class="fixed inset-0 z-50 pointer-events-none hidden">
+        <!-- 4 Surrounding Blur Panes that leave the focused section crystal clear -->
+        <div id="tutPaneTop" class="tutorial-pane fixed top-0 left-0 right-0 pointer-events-auto"></div>
+        <div id="tutPaneBottom" class="tutorial-pane fixed bottom-0 left-0 right-0 pointer-events-auto"></div>
+        <div id="tutPaneLeft" class="tutorial-pane fixed left-0 pointer-events-auto"></div>
+        <div id="tutPaneRight" class="tutorial-pane fixed right-0 pointer-events-auto"></div>
+
+        <!-- Glowing Focus Frame around active section -->
+        <div id="tutorialHighlightRing" class="fixed rounded-2xl border-2 border-indigo-500 pointer-events-none z-10"></div>
+
+        <!-- Floating Step-by-Step Guide Card -->
+        <div id="tutorialCard" class="fixed z-20 w-[92vw] max-w-[390px] bg-white rounded-2xl border border-slate-200/90 shadow-2xl p-5 pointer-events-auto">
+            <!-- Top Row: Step Badge & Skip Button -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/80">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span id="tutStepCounter" class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Step 1 of 5</span>
+                </div>
+                <button onclick="endTutorial()" class="text-xs font-semibold text-slate-400 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    Skip Tutorial
+                </button>
+            </div>
+
+            <!-- Step Title & Icon -->
+            <div class="flex items-start gap-3 mb-2.5">
+                <div id="tutStepIconBox" class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <i id="tutStepIcon" class="ph-bold ph-matrix-logo text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="tutStepTitle" class="text-base font-bold text-slate-900 leading-snug">
+                        Welcome &amp; Adjacency Matrix
+                    </h3>
+                    <p id="tutStepSubtitle" class="text-[11px] font-medium text-indigo-600">
+                        Interactive Input Panel
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step Description -->
+            <p id="tutStepDesc" class="text-xs text-slate-600 leading-relaxed mb-4">
+                Set your network size from 2×2 up to 15×15 using the top slider, then click any cell to toggle an edge (0 or 1) or type custom weights.
+            </p>
+
+            <!-- Quick Tip Box -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 mb-4 flex items-start gap-2">
+                <i class="ph-fill ph-lightbulb text-amber-500 text-sm shrink-0 mt-0.5"></i>
+                <p id="tutStepTip" class="text-[11px] text-slate-600 leading-normal">
+                    Keep "Mirror (Undirected)" checked for symmetric links, or uncheck it to build directed graphs with arrows!
+                </p>
+            </div>
+
+            <!-- Footer Navigation: Progress Dots + Back/Next Buttons -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <div id="tutDotsContainer" class="flex items-center gap-1.5">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="tutBtnBack" onclick="prevTutorialStep()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition cursor-pointer">
+                        Back
+                    </button>
+                    <button id="tutBtnNext" onclick="nextTutorialStep()" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer">
+                        <span id="tutBtnNextText">Next</span>
+                        <i id="tutBtnNextIcon" class="ph-bold ph-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MAX_DIM = 15;
+        const MIN_DIM = 2;
+
+        // Distinct light-mode friendly cluster palette
+        const CLUSTER_PALETTE = [
+            { stroke: '#4f46e5', fill: 'rgba(79, 70, 229, 0.07)', badgeBg: '#eef2ff', badgeText: '#4338ca' }, // Indigo
+            { stroke: '#059669', fill: 'rgba(5, 150, 105, 0.07)', badgeBg: '#ecfdf5', badgeText: '#047857' }, // Emerald
+            { stroke: '#d97706', fill: 'rgba(217, 119, 6, 0.07)', badgeBg: '#fffbeb', badgeText: '#b45309' }, // Amber
+            { stroke: '#e11d48', fill: 'rgba(225, 29, 72, 0.07)', badgeBg: '#fff1f2', badgeText: '#be123c' }, // Rose
+            { stroke: '#0284c7', fill: 'rgba(2, 132, 199, 0.07)', badgeBg: '#f0f9ff', badgeText: '#0369a1' }, // Sky
+            { stroke: '#9333ea', fill: 'rgba(147, 51, 234, 0.07)', badgeBg: '#faf5ff', badgeText: '#7e22ce' }, // Purple
+            { stroke: '#ea580c', fill: 'rgba(234, 88, 12, 0.07)', badgeBg: '#fff7ed', badgeText: '#c2410c' }  // Orange
+        ];
+
+        const state = {
+            n: 8,
+            // 15x15 backing matrix so resizing preserves patterns smoothly
+            matrix: Array.from({ length: MAX_DIM }, () => Array(MAX_DIM).fill(0)),
+            centralityMode: 'eigenvector', // 'eigenvector' | 'katz' | 'closeness' | 'betweenness'
+            symmetricEdit: true,
+            showClusters: true,
+            physicsEnabled: true,
+            histogramMode: 'all', // 'all' | 'total'
+            tableSortKey: 'id',
+            tableSortAsc: true,
+            nodes: [],
+            metrics: {
+                nodes: [],
+                global: {
+                    diameter: 0,
+                    totalEdges: 0,
+                    avgEdgesPerNode: 0,
+                    density: 0,
+                    avgGeodesic: 0,
+                    isDirected: false,
+                    clusterCount: 1
+                }
+            },
+            camera: { x: 0, y: 0, zoom: 1 },
+            interaction: {
+                draggingNode: null,
+                panning: false,
+                panStartX: 0,
+                panStartY: 0,
+                hoveredNode: null,
+                highlightedCell: null // {r, c}
+            }
+        };
+
+        function initNodesPosition(count, preserveExisting = true) {
+            const canvas = document.getElementById('graphCanvas');
+            const w = canvas.clientWidth || 700;
+            const h = canvas.clientHeight || 520;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = Math.min(w, h) * 0.31;
+
+            const newNodes = [];
+            for (let i = 0; i < count; i++) {
+                if (preserveExisting && state.nodes[i]) {
+                    newNodes.push(state.nodes[i]);
+                } else {
+                    const angle = (2 * Math.PI * i) / count - Math.PI / 2;
+                    newNodes.push({
+                        id: i,
+                        label: `${i + 1}`,
+                        x: cx + radius * Math.cos(angle) + (Math.random() - 0.5) * 12,
+                        y: cy + radius * Math.sin(angle) + (Math.random() - 0.5) * 12,
+                        vx: 0,
+                        vy: 0
+                    });
+                }
+            }
+            state.nodes = newNodes;
+        }
+
+        function arrangeCircularLayout() {
+            const canvas = document.getElementById('graphCanvas');
+            const w = canvas.clientWidth || 700;
+            const h = canvas.clientHeight || 520;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = Math.min(w, h) * 0.34;
+
+            // Sort nodes by cluster so clusters sit together nicely on the circle
+            const ordered = [...state.nodes].sort((a, b) => {
+                const ca = state.metrics.nodes[a.id]?.cluster ?? 0;
+                const cb = state.metrics.nodes[b.id]?.cluster ?? 0;
+                return ca !== cb ? ca - cb : a.id - b.id;
+            });
+
+            ordered.forEach((node, idx) => {
+                const angle = (2 * Math.PI * idx) / state.n - Math.PI / 2;
+                node.x = cx + radius * Math.cos(angle);
+                node.y = cy + radius * Math.sin(angle);
+                node.vx = 0;
+                node.vy = 0;
+            });
+        }
+
+        function resetCameraView() {
+            const canvas = document.getElementById('graphCanvas');
+            const w = canvas.clientWidth || 700;
+            const h = canvas.clientHeight || 520;
+            if (state.nodes.length === 0) return;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            state.nodes.forEach(n => {
+                if (n.x < minX) minX = n.x;
+                if (n.x > maxX) maxX = n.x;
+                if (n.y < minY) minY = n.y;
+                if (n.y > maxY) maxY = n.y;
+            });
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+            const dx = w / 2 - cx;
+            const dy = h / 2 - cy;
+            state.nodes.forEach(n => {
+                n.x += dx;
+                n.y += dy;
+            });
+        }
+
+        function applyPreset(type) {
+            const n = state.n;
+            // Clear active submatrix
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    state.matrix[i][j] = 0;
+                }
+            }
+
+            if (type === 'clustered') {
+                // Create 2 or 3 dense communities connected by a bridge edge
+                const numClusters = n >= 9 ? 3 : 2;
+                for (let i = 0; i < n; i++) {
+                    const ci = Math.floor((i * numClusters) / n);
+                    for (let j = i + 1; j < n; j++) {
+                        const cj = Math.floor((j * numClusters) / n);
+                        if (ci === cj) {
+                            state.matrix[i][j] = 1;
+                            state.matrix[j][i] = 1;
+                        }
+                    }
+                }
+                // Bridge between cluster 0 and cluster 1
+                const mid = Math.floor(n / numClusters);
+                if (mid > 0 && mid < n) {
+                    state.matrix[mid - 1][mid] = 1;
+                    state.matrix[mid][mid - 1] = 1;
+                }
+                // Bridge between cluster 1 and cluster 2 if 3 clusters
+                if (numClusters === 3) {
+                    const mid2 = Math.floor((2 * n) / 3);
+                    if (mid2 > 0 && mid2 < n) {
+                        state.matrix[mid2 - 1][mid2] = 1;
+                        state.matrix[mid2][mid2 - 1] = 1;
+                    }
+                }
+            } else if (type === 'smallworld') {
+                // Watts-Strogatz style ring + chords
+                for (let i = 0; i < n; i++) {
+                    const next1 = (i + 1) % n;
+                    const next2 = (i + 2) % n;
+                    state.matrix[i][next1] = state.matrix[next1][i] = 1;
+                    if (n >= 5) {
+                        state.matrix[i][next2] = state.matrix[next2][i] = 1;
+                    }
+                }
+                if (n >= 6) {
+                    state.matrix[0][Math.floor(n / 2)] = 1;
+                    state.matrix[Math.floor(n / 2)][0] = 1;
+                }
+            } else if (type === 'star') {
+                for (let i = 1; i < n; i++) {
+                    state.matrix[0][i] = 1;
+                    state.matrix[i][0] = 1;
+                }
+            } else if (type === 'ring') {
+                for (let i = 0; i < n; i++) {
+                    const next = (i + 1) % n;
+                    state.matrix[i][next] = 1;
+                    state.matrix[next][i] = 1;
+                }
+            } else if (type === 'random') {
+                const prob = n <= 5 ? 0.45 : 0.3;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        if (Math.random() < prob) {
+                            state.matrix[i][j] = 1;
+                            if (state.symmetricEdit || Math.random() < 0.7) {
+                                state.matrix[j][i] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            initNodesPosition(n, false);
+            renderMatrixGrid();
+            recalculateAllMetrics();
+        }
+
+        function symmetrizeMatrix() {
+            const n = state.n;
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    const val = Math.max(state.matrix[i][j], state.matrix[j][i]);
+                    state.matrix[i][j] = val;
+                    state.matrix[j][i] = val;
+                }
+            }
+            renderMatrixGrid();
+            recalculateAllMetrics();
+        }
+
+        function renderMatrixGrid() {
+            const container = document.getElementById('matrixContainer');
+            const n = state.n;
+
+            // Responsive cell sizing based on N
+            const cellSizeClass = n <= 7 ? 'w-9 h-9 text-xs' : (n <= 11 ? 'w-7 h-7 text-xs' : 'w-6 h-6 text-[11px]');
+
+            let html = `<table class="border-collapse select-none">`;
+            // Column headers
+            html += `<thead><tr><th class="p-1 text-[10px] mono text-slate-400 font-normal">i\\j</th>`;
+            for (let j = 0; j < n; j++) {
+                html += `<th class="${cellSizeClass} text-center mono text-[11px] font-bold text-slate-500 pb-1">${j + 1}</th>`;
+            }
+            html += `</tr></thead><tbody>`;
+
+            for (let i = 0; i < n; i++) {
+                html += `<tr>`;
+                // Row header
+                html += `<td class="pr-2 text-right mono text-[11px] font-bold text-slate-500">${i + 1}</td>`;
+                for (let j = 0; j < n; j++) {
+                    const val = state.matrix[i][j];
+                    const isDiag = i === j;
+                    const active = val > 0;
+                    const bgClass = active
+                        ? 'bg-indigo-600 text-white font-bold border-indigo-700'
+                        : (isDiag ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50');
+
+                    html += `<td class="p-0.5">
+                        <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            id="cell-${i}-${j}"
+                            data-row="${i}"
+                            data-col="${j}"
+                            value="${val}"
+                            class="matrix-cell ${cellSizeClass} text-center mono rounded-md border ${bgClass} cursor-pointer"
+                        />
+                    </td>`;
+                }
+                html += `</tr>`;
+            }
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+
+            // Attach click, input, and hover listeners to every matrix cell
+            const inputs = container.querySelectorAll('input.matrix-cell');
+            inputs.forEach(inp => {
+                const r = parseInt(inp.dataset.row, 10);
+                const c = parseInt(inp.dataset.col, 10);
+
+                // Single click toggles 0 <-> 1 for rapid editing; typing allows custom weight
+                inp.addEventListener('mousedown', (e) => {
+                    if (document.activeElement !== inp) {
+                        const current = parseFloat(state.matrix[r][c]) || 0;
+                        const nextVal = current > 0 ? 0 : 1;
+                        updateMatrixCell(r, c, nextVal, true);
+                    }
+                });
+
+                inp.addEventListener('input', (e) => {
+                    const raw = parseFloat(e.target.value);
+                    const cleanVal = (isNaN(raw) || raw < 0) ? 0 : raw;
+                    updateMatrixCell(r, c, cleanVal, false);
+                });
+
+                inp.addEventListener('blur', (e) => {
+                    if (e.target.value === '' || isNaN(parseFloat(e.target.value))) {
+                        updateMatrixCell(r, c, 0, true);
+                    }
+                });
+
+                inp.addEventListener('mouseenter', () => {
+                    state.interaction.highlightedCell = { r, c };
+                    document.getElementById('matrixHoverInfo').textContent =
+                        `A[${r + 1}, ${c + 1}] = ${state.matrix[r][c]} (${r === c ? 'Self-loop' : `Edge ${r + 1} → ${c + 1}`})`;
+                });
+
+                inp.addEventListener('mouseleave', () => {
+                    state.interaction.highlightedCell = null;
+                });
+            });
+        }
+
+        function updateMatrixCell(r, c, val, syncDOM = true) {
+            state.matrix[r][c] = val;
+            if (state.symmetricEdit && r !== c) {
+                state.matrix[c][r] = val;
+            }
+
+            // Style update helper
+            const styleCell = (row, col, v) => {
+                const el = document.getElementById(`cell-${row}-${col}`);
+                if (!el) return;
+                if (syncDOM) el.value = v;
+                const isDiag = row === col;
+                el.classList.remove(
+                    'bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-700',
+                    'bg-slate-100', 'text-slate-400', 'bg-white', 'text-slate-700', 'border-slate-200'
+                );
+                if (v > 0) {
+                    el.classList.add('bg-indigo-600', 'text-white', 'font-bold', 'border-indigo-700');
+                } else if (isDiag) {
+                    el.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
+                } else {
+                    el.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+                }
+            };
+
+            styleCell(r, c, val);
+            if (state.symmetricEdit && r !== c) {
+                styleCell(c, r, val);
+            }
+
+            recalculateAllMetrics();
+        }
+
+        function recalculateAllMetrics() {
+            const n = state.n;
+            const A = Array.from({ length: n }, (_, i) =>
+                Array.from({ length: n }, (_, j) => Number(state.matrix[i][j]) || 0)
+            );
+
+            // Check if matrix is symmetric (undirected) or asymmetric (directed)
+            let isDirected = false;
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    if (Math.abs(A[i][j] - A[j][i]) > 1e-9) {
+                        isDirected = true;
+                        break;
+                    }
+                }
+            }
+
+            // 1. Degrees & Total Edges
+            const inDeg = Array(n).fill(0);
+            const outDeg = Array(n).fill(0);
+            const totalDeg = Array(n).fill(0);
+            let directedEdgesCount = 0;
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (A[i][j] > 0) {
+                        outDeg[i] += 1;
+                        inDeg[j] += 1;
+                        if (i !== j) directedEdgesCount += 1;
+                    }
+                }
+            }
+            for (let i = 0; i < n; i++) {
+                if (isDirected) {
+                    totalDeg[i] = inDeg[i] + outDeg[i];
+                } else {
+                    totalDeg[i] = outDeg[i];
+                }
+            }
+
+            const totalEdges = isDirected ? directedEdgesCount : Math.round(directedEdgesCount / 2);
+            const maxPossibleEdges = isDirected ? n * (n - 1) : (n * (n - 1)) / 2;
+            const density = maxPossibleEdges > 0 ? totalEdges / maxPossibleEdges : 0;
+            const avgEdgesPerNode = n > 0 ? totalEdges / n : 0;
+
+            // 2. All-Pairs Shortest Paths (Unweighted BFS / Dijkstra for positive weights)
+            // Using unweighted hop count for standard topological Geodesic Distance, Diameter, Closeness & Brandes Betweenness
+            const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
+            for (let i = 0; i < n; i++) dist[i][i] = 0;
+
+            for (let s = 0; s < n; s++) {
+                const queue = [s];
+                while (queue.length > 0) {
+                    const u = queue.shift();
+                    for (let v = 0; v < n; v++) {
+                        if (A[u][v] > 0 && dist[s][v] === Infinity) {
+                            dist[s][v] = dist[s][u] + 1;
+                            queue.push(v);
+                        }
+                    }
+                }
+            }
+
+            let diameter = 0;
+            let sumGeodesic = 0;
+            let reachablePairs = 0;
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (i !== j && dist[i][j] < Infinity) {
+                        if (dist[i][j] > diameter) diameter = dist[i][j];
+                        sumGeodesic += dist[i][j];
+                        reachablePairs++;
+                    }
+                }
+            }
+            const avgGeodesic = reachablePairs > 0 ? sumGeodesic / reachablePairs : 0;
+
+            // 3. Eigenvector Centrality (Power Iteration with L2 Normalization)
+            let eigen = Array(n).fill(1 / Math.sqrt(n));
+            for (let iter = 0; iter < 80; iter++) {
+                const next = Array(n).fill(0);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        // Symmetrized influence or incoming+outgoing if isolated direction
+                        const w = isDirected ? (A[j][i] + 0.5 * A[i][j]) : A[i][j];
+                        next[i] += w * eigen[j];
+                    }
+                }
+                const norm = Math.hypot(...next);
+                if (norm <= 1e-12) {
+                    eigen = Array(n).fill(0);
+                    break;
+                }
+                for (let i = 0; i < n; i++) eigen[i] = next[i] / norm;
+            }
+
+            // 4. Katz Centrality: x = alpha * A * x + beta (where alpha < 1 / lambda_max)
+            // Estimate spectral radius via max degree bound
+            let maxRowSum = 0;
+            for (let i = 0; i < n; i++) {
+                const rSum = A[i].reduce((acc, v) => acc + (v > 0 ? v : 0), 0);
+                if (rSum > maxRowSum) maxRowSum = rSum;
+            }
+            const alpha = maxRowSum > 0 ? Math.min(0.25, 0.85 / maxRowSum) : 0.15;
+            const beta = 1.0;
+            let katz = Array(n).fill(1.0);
+            for (let iter = 0; iter < 80; iter++) {
+                const next = Array(n).fill(beta);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        const w = isDirected ? A[j][i] : A[i][j];
+                        next[i] += alpha * w * katz[j];
+                    }
+                }
+                let diff = 0;
+                for (let i = 0; i < n; i++) diff += Math.abs(next[i] - katz[i]);
+                katz = next;
+                if (diff < 1e-7) break;
+            }
+            // Normalize Katz by L2 norm so values are clean
+            const katzNorm = Math.hypot(...katz) || 1;
+            katz = katz.map(v => v / katzNorm);
+
+            // 5. Closeness Centrality (Wasserman & Faust harmonic-safe closeness for disconnected graphs)
+            const closeness = Array(n).fill(0);
+            for (let i = 0; i < n; i++) {
+                let sumDist = 0;
+                let reachable = 0;
+                for (let j = 0; j < n; j++) {
+                    if (i !== j && dist[i][j] < Infinity) {
+                        sumDist += dist[i][j];
+                        reachable++;
+                    }
+                }
+                if (reachable > 0 && sumDist > 0) {
+                    // Wasserman-Faust scaling for disconnected components
+                    closeness[i] = (reachable / sumDist) * (reachable / (n - 1));
+                }
+            }
+
+            // 6. Betweenness Centrality (Brandes' Exact Algorithm)
+            const betweenness = Array(n).fill(0);
+            for (let s = 0; s < n; s++) {
+                const stack = [];
+                const pred = Array.from({ length: n }, () => []);
+                const sigma = Array(n).fill(0);
+                sigma[s] = 1;
+                const d = Array(n).fill(-1);
+                d[s] = 0;
+                const Q = [s];
+
+                while (Q.length > 0) {
+                    const v = Q.shift();
+                    stack.push(v);
+                    for (let w = 0; w < n; w++) {
+                        if (A[v][w] > 0) {
+                            if (d[w] < 0) {
+                                Q.push(w);
+                                d[w] = d[v] + 1;
+                            }
+                            if (d[w] === d[v] + 1) {
+                                sigma[w] += sigma[v];
+                                pred[w].push(v);
+                            }
+                        }
+                    }
+                }
+
+                const delta = Array(n).fill(0);
+                while (stack.length > 0) {
+                    const w = stack.pop();
+                    for (const v of pred[w]) {
+                        delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]);
+                    }
+                    if (w !== s) {
+                        betweenness[w] += delta[w];
+                    }
+                }
+            }
+
+            // Normalize Betweenness
+            const normFactor = (n > 2) ? ((n - 1) * (n - 2)) : 1;
+            for (let i = 0; i < n; i++) {
+                betweenness[i] = betweenness[i] / normFactor;
+            }
+
+            // 7. Community / Cluster Detection (Modularity Greedy Optimization + Connected Component fallback)
+            const clusters = detectClustersModularity(A, n);
+            const uniqueClusters = [...new Set(clusters)];
+
+            // Store calculated metrics
+            state.metrics.nodes = Array.from({ length: n }, (_, i) => ({
+                id: i + 1,
+                cluster: uniqueClusters.indexOf(clusters[i]) + 1,
+                inDeg: inDeg[i],
+                outDeg: outDeg[i],
+                totalDeg: totalDeg[i],
+                eigenvector: eigen[i],
+                katz: katz[i],
+                closeness: closeness[i],
+                betweenness: betweenness[i]
+            }));
+
+            state.metrics.global = {
+                diameter,
+                totalEdges,
+                avgEdgesPerNode,
+                density,
+                avgGeodesic,
+                isDirected,
+                clusterCount: uniqueClusters.length
+            };
+
+            updateTopBarSummaryUI();
+            if (!document.getElementById('metricModalBackdrop').classList.contains('hidden')) {
+                renderMetricTable();
+                renderDegreeHistogram();
+            }
+        }
+
+        function detectClustersModularity(A, n) {
+            // Symmetrize weights for community detection
+            const W = Array.from({ length: n }, (_, i) =>
+                Array.from({ length: n }, (_, j) => (A[i][j] > 0 || A[j][i] > 0) ? (A[i][j] + A[j][i]) : 0)
+            );
+
+            let twoM = 0;
+            const k = Array(n).fill(0);
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    k[i] += W[i][j];
+                    twoM += W[i][j];
+                }
+            }
+
+            // If no edges at all, every node is its own cluster
+            if (twoM === 0) {
+                return Array.from({ length: n }, (_, i) => i);
+            }
+
+            // Start each node in its own community and perform greedy Louvain-style local moving
+            const comm = Array.from({ length: n }, (_, i) => i);
+            let improved = true;
+            let pass = 0;
+
+            while (improved && pass < 20) {
+                improved = false;
+                pass++;
+                for (let i = 0; i < n; i++) {
+                    if (k[i] === 0) continue; // Isolated node stays alone
+                    const currentComm = comm[i];
+                    let bestComm = currentComm;
+                    let bestGain = 0;
+
+                    // Candidate communities: communities of neighbors
+                    const candidateComms = new Set([currentComm]);
+                    for (let j = 0; j < n; j++) {
+                        if (W[i][j] > 0) candidateComms.add(comm[j]);
+                    }
+
+                    for (const targetComm of candidateComms) {
+                        if (targetComm === currentComm) continue;
+                        let k_i_in_target = 0;
+                        let k_i_in_current = 0;
+                        let sigma_target = 0;
+                        let sigma_current = 0;
+
+                        for (let j = 0; j < n; j++) {
+                            if (j === i) continue;
+                            if (comm[j] === targetComm) {
+                                k_i_in_target += W[i][j];
+                                sigma_target += k[j];
+                            }
+                            if (comm[j] === currentComm) {
+                                k_i_in_current += W[i][j];
+                                sigma_current += k[j];
+                            }
+                        }
+
+                        const deltaQ = (k_i_in_target - k_i_in_current) / twoM -
+                            (k[i] * (sigma_target - sigma_current)) / (twoM * twoM);
+
+                        if (deltaQ > bestGain + 1e-7) {
+                            bestGain = deltaQ;
+                            bestComm = targetComm;
+                        }
+                    }
+
+                    if (bestComm !== currentComm) {
+                        comm[i] = bestComm;
+                        improved = true;
+                    }
+                }
+            }
+
+            return comm;
+        }
+
+        function updateTopBarSummaryUI() {
+            const g = state.metrics.global;
+            document.getElementById('statDiameter').textContent = g.diameter;
+            document.getElementById('statAvgEdges').textContent = g.avgEdgesPerNode.toFixed(2);
+            document.getElementById('statTotalEdges').textContent = `(${g.totalEdges} total)`;
+            document.getElementById('statDensity').textContent = g.density.toFixed(3);
+            document.getElementById('statAvgGeodesic').textContent = g.avgGeodesic.toFixed(3);
+            document.getElementById('statClustersCount').textContent =
+                `${g.clusterCount} ${g.clusterCount === 1 ? 'cluster' : 'clusters'}`;
+            document.getElementById('clusterSummaryText').textContent =
+                `${g.clusterCount} ${g.clusterCount === 1 ? 'Community Cluster' : 'Community Clusters'} Encircled`;
+
+            const badge = document.getElementById('graphTypeBadge');
+            if (g.isDirected) {
+                badge.textContent = 'Directed Graph';
+                badge.className = 'text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+            } else {
+                badge.textContent = 'Undirected Graph';
+                badge.className = 'text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200';
+            }
+
+            // Update Legend Min/Max
+            const values = state.metrics.nodes.map(m => m[state.centralityMode]);
+            const minVal = values.length ? Math.min(...values) : 0;
+            const maxVal = values.length ? Math.max(...values) : 1;
+            document.getElementById('legendMin').textContent = `Min: ${minVal.toFixed(3)}`;
+            document.getElementById('legendMax').textContent = `Max: ${maxVal.toFixed(3)}`;
+        }
+
+        function setCentralityMode(mode) {
+            state.centralityMode = mode;
+            const titles = {
+                eigenvector: 'Eigenvector Centrality',
+                katz: 'Katz Centrality',
+                closeness: 'Closeness Centrality',
+                betweenness: 'Betweenness Centrality'
+            };
+            document.getElementById('legendTitle').textContent = titles[mode];
+
+            document.querySelectorAll('.centrality-btn').forEach(btn => {
+                if (btn.dataset.centrality === mode) {
+                    btn.className = 'centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-indigo-700 shadow-xs';
+                } else {
+                    btn.className = 'centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900';
+                }
+            });
+
+            updateTopBarSummaryUI();
+        }
+
+        // Interpolate readable scientific color gradient for [0, 1] normalized centrality score
+        function getCentralityColor(t) {
+            const stops = [
+                { pos: 0.00, r: 59,  g: 130, b: 246 }, // Blue-500
+                { pos: 0.28, r: 6,   g: 182, b: 212 }, // Cyan-500
+                { pos: 0.55, r: 16,  g: 185, b: 129 }, // Emerald-500
+                { pos: 0.78, r: 245, g: 158, b: 11  }, // Amber-500
+                { pos: 1.00, r: 225, g: 29,  b: 72  }  // Rose-600
+            ];
+            const clamped = Math.max(0, Math.min(1, isNaN(t) ? 0 : t));
+            for (let i = 0; i < stops.length - 1; i++) {
+                const a = stops[i];
+                const b = stops[i + 1];
+                if (clamped >= a.pos && clamped <= b.pos) {
+                    const localT = (clamped - a.pos) / (b.pos - a.pos);
+                    const r = Math.round(a.r + (b.r - a.r) * localT);
+                    const g = Math.round(a.g + (b.g - a.g) * localT);
+                    const bl = Math.round(a.b + (b.b - a.b) * localT);
+                    return `rgb(${r}, ${g}, ${bl})`;
+                }
+            }
+            return 'rgb(59, 130, 246)';
+        }
+
+        function computeConvexHull(points) {
+            if (points.length <= 2) return points.slice();
+            const pts = points.slice().sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+            const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+            const lower = [];
+            for (const p of pts) {
+                while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+                    lower.pop();
+                }
+                lower.push(p);
+            }
+            const upper = [];
+            for (let i = pts.length - 1; i >= 0; i--) {
+                const p = pts[i];
+                while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+                    upper.pop();
+                }
+                upper.push(p);
+            }
+            upper.pop();
+            lower.pop();
+            return lower.concat(upper);
+        }
+
+        function drawClusterEncirclements(ctx) {
+            if (!state.showClusters) return;
+
+            // Group nodes by cluster ID
+            const clusterGroups = new Map();
+            state.nodes.forEach(node => {
+                const cId = state.metrics.nodes[node.id]?.cluster || 1;
+                if (!clusterGroups.has(cId)) clusterGroups.set(cId, []);
+                clusterGroups.get(cId).push(node);
+            });
+
+            const padRadius = 36;
+            const samplesPerNode = 12;
+
+            clusterGroups.forEach((groupNodes, cId) => {
+                const style = CLUSTER_PALETTE[(cId - 1) % CLUSTER_PALETTE.length];
+
+                // Generate padded boundary sample points around each node in the cluster
+                const samplePoints = [];
+                groupNodes.forEach(node => {
+                    for (let k = 0; k < samplesPerNode; k++) {
+                        const ang = (2 * Math.PI * k) / samplesPerNode;
+                        samplePoints.push({
+                            x: node.x + padRadius * Math.cos(ang),
+                            y: node.y + padRadius * Math.sin(ang)
+                        });
+                    }
+                });
+
+                const hull = computeConvexHull(samplePoints);
+                if (hull.length < 3) return;
+
+                ctx.save();
+                ctx.beginPath();
+                // Smooth closed curve through hull vertices
+                const len = hull.length;
+                const startMidX = (hull[len - 1].x + hull[0].x) / 2;
+                const startMidY = (hull[len - 1].y + hull[0].y) / 2;
+                ctx.moveTo(startMidX, startMidY);
+
+                for (let i = 0; i < len; i++) {
+                    const p1 = hull[i];
+                    const p2 = hull[(i + 1) % len];
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    ctx.quadraticCurveTo(p1.x, p1.y, midX, midY);
+                }
+                ctx.closePath();
+
+                // Soft cluster tint fill
+                ctx.fillStyle = style.fill;
+                ctx.fill();
+
+                // Dotted encircling contour line
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = style.stroke;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+
+                // Cluster Label Tag at top of cluster hull
+                let topPt = hull[0];
+                for (const pt of hull) {
+                    if (pt.y < topPt.y) topPt = pt;
+                }
+                ctx.setLineDash([]);
+                ctx.font = '600 10px Inter, sans-serif';
+                const label = `Cluster ${cId}`;
+                const textWidth = ctx.measureText(label).width;
+                const pillW = textWidth + 12;
+                const pillH = 18;
+                const px = topPt.x - pillW / 2;
+                const py = topPt.y - 10;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = style.stroke;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.roundRect(px, py, pillW, pillH, 9);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = style.badgeText;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, topPt.x, py + pillH / 2);
+
+                ctx.restore();
+            });
+        }
+
+        function stepForceSimulation() {
+            if (!state.physicsEnabled) return;
+            const nodes = state.nodes;
+            const n = state.n;
+            const canvas = document.getElementById('graphCanvas');
+            const w = canvas.clientWidth || 700;
+            const h = canvas.clientHeight || 520;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            const repulsionK = 5200;
+            const springLength = Math.min(w, h) * 0.25;
+            const springK = 0.035;
+            const clusterPullK = 0.012;
+            const centerPullK = 0.008;
+
+            for (let i = 0; i < n; i++) {
+                const u = nodes[i];
+                if (state.interaction.draggingNode === u) continue;
+
+                let fx = (cx - u.x) * centerPullK;
+                let fy = (cy - u.y) * centerPullK;
+
+                for (let j = 0; j < n; j++) {
+                    if (i === j) continue;
+                    const v = nodes[j];
+                    let dx = u.x - v.x;
+                    let dy = u.y - v.y;
+                    let distSq = dx * dx + dy * dy;
+                    if (distSq < 16) {
+                        dx = (Math.random() - 0.5) * 4;
+                        dy = (Math.random() - 0.5) * 4;
+                        distSq = 16;
+                    }
+                    const dist = Math.sqrt(distSq);
+
+                    // Coulomb Repulsion
+                    const rep = repulsionK / distSq;
+                    fx += (dx / dist) * rep;
+                    fy += (dy / dist) * rep;
+
+                    // Hooke Spring Attraction if connected
+                    const weight = (Number(state.matrix[i][j]) || 0) + (Number(state.matrix[j][i]) || 0);
+                    if (weight > 0) {
+                        const targetLen = springLength / Math.min(1.8, 0.8 + 0.2 * weight);
+                        const displacement = dist - targetLen;
+                        const force = springK * displacement;
+                        fx -= (dx / dist) * force;
+                        fy -= (dy / dist) * force;
+                    }
+
+                    // Gentle intra-cluster cohesion so community clusters stay neatly grouped
+                    const ci = state.metrics.nodes[i]?.cluster;
+                    const cj = state.metrics.nodes[j]?.cluster;
+                    if (ci && ci === cj && dist > springLength * 0.75) {
+                        fx -= (dx / dist) * clusterPullK * (dist - springLength * 0.75);
+                        fy -= (dy / dist) * clusterPullK * (dist - springLength * 0.75);
+                    }
+                }
+
+                u.vx = (u.vx + fx) * 0.78;
+                u.vy = (u.vy + fy) * 0.78;
+
+                // Clamp max velocity
+                const speed = Math.hypot(u.vx, u.vy);
+                if (speed > 8) {
+                    u.vx = (u.vx / speed) * 8;
+                    u.vy = (u.vy / speed) * 8;
+                }
+
+                u.x += u.vx;
+                u.y += u.vy;
+
+                // Keep inside padded viewport bounds
+                const margin = 48;
+                if (u.x < margin) { u.x = margin; u.vx *= -0.5; }
+                if (u.x > w - margin) { u.x = w - margin; u.vx *= -0.5; }
+                if (u.y < margin) { u.y = margin; u.vy *= -0.5; }
+                if (u.y > h - margin) { u.y = h - margin; u.vy *= -0.5; }
+            }
+        }
+
+        function drawGraphCanvas() {
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Draw Dotted Cluster Encirclements underneath edges & nodes
+            drawClusterEncirclements(ctx);
+
+            const n = state.n;
+            const nodes = state.nodes;
+            const isDirected = state.metrics.global.isDirected;
+            const hl = state.interaction.highlightedCell;
+
+            // Compute min/max centrality for normalized node coloring & sizing
+            const rawScores = state.metrics.nodes.map(m => m[state.centralityMode] || 0);
+            const minScore = rawScores.length ? Math.min(...rawScores) : 0;
+            const maxScore = rawScores.length ? Math.max(...rawScores) : 1;
+            const scoreSpan = (maxScore - minScore) > 1e-9 ? (maxScore - minScore) : 1;
+
+            const getNodeRadius = (idx) => {
+                const val = rawScores[idx] || 0;
+                const norm = (maxScore - minScore) > 1e-9 ? (val - minScore) / scoreSpan : 0.5;
+                return 16 + norm * 8;
+            };
+
+            // 2. Draw Edges (Links, Arrows, Self-Loops, Weights)
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const weight = Number(state.matrix[i][j]) || 0;
+                    if (weight <= 0) continue;
+                    // For undirected graphs, draw each undirected pair once (except self-loops)
+                    if (!isDirected && j < i) continue;
+
+                    const u = nodes[i];
+                    const v = nodes[j];
+                    if (!u || !v) continue;
+
+                    const isHighlighted = hl && ((hl.r === i && hl.c === j) || (!isDirected && hl.r === j && hl.c === i));
+
+                    ctx.save();
+                    if (i === j) {
+                        // Self-loop arc
+                        const r = getNodeRadius(i);
+                        ctx.beginPath();
+                        ctx.arc(u.x, u.y - r - 10, 12, 0, 2 * Math.PI);
+                        ctx.strokeStyle = isHighlighted ? '#4f46e5' : '#64748b';
+                        ctx.lineWidth = isHighlighted ? 2.5 : 1.75;
+                        ctx.stroke();
+                    } else {
+                        const dx = v.x - u.x;
+                        const dy = v.y - u.y;
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const ux = dx / dist;
+                        const uy = dy / dist;
+
+                        // Curve bidirectional directed edges slightly so both arrows are visible
+                        const hasReverse = isDirected && (Number(state.matrix[j][i]) || 0) > 0;
+                        const curveOffset = hasReverse ? 14 : 0;
+                        const nx = -uy * curveOffset;
+                        const ny = ux * curveOffset;
+
+                        const rU = getNodeRadius(i);
+                        const rV = getNodeRadius(j);
+                        const startX = u.x + ux * rU;
+                        const startY = u.y + uy * rU;
+                        const endX = v.x - ux * (rV + (isDirected ? 6 : 0));
+                        const endY = v.y - uy * (rV + (isDirected ? 6 : 0));
+                        const ctrlX = (u.x + v.x) / 2 + nx;
+                        const ctrlY = (u.y + v.y) / 2 + ny;
+
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        if (curveOffset !== 0) {
+                            ctx.quadraticCurveTo(ctrlX, ctrlY, endX, endY);
+                        } else {
+                            ctx.lineTo(endX, endY);
+                        }
+
+                        ctx.strokeStyle = isHighlighted ? '#4f46e5' : '#94a3b8';
+                        ctx.lineWidth = isHighlighted ? 2.8 : Math.min(4, 1.5 + Math.log1p(weight) * 0.7);
+                        ctx.stroke();
+
+                        // Directed Arrowhead
+                        if (isDirected) {
+                            const angle = Math.atan2(endY - ctrlY, endX - ctrlX);
+                            const headLen = 8;
+                            ctx.beginPath();
+                            ctx.moveTo(endX, endY);
+                            ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+                            ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+                            ctx.closePath();
+                            ctx.fillStyle = isHighlighted ? '#4f46e5' : '#64748b';
+                            ctx.fill();
+                        }
+
+                        // Weight pill if weight != 1
+                        if (Math.abs(weight - 1) > 1e-6) {
+                            const labelX = (startX + 2 * ctrlX + endX) / 4;
+                            const labelY = (startY + 2 * ctrlY + endY) / 4;
+                            const wText = Number.isInteger(weight) ? String(weight) : weight.toFixed(1);
+                            ctx.font = '600 10px JetBrains Mono, monospace';
+                            const tw = ctx.measureText(wText).width + 8;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.strokeStyle = '#cbd5e1';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.roundRect(labelX - tw / 2, labelY - 8, tw, 16, 4);
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.fillStyle = '#334155';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(wText, labelX, labelY);
+                        }
+                    }
+                    ctx.restore();
+                }
+            }
+
+            // 3. Draw Nodes Color-Coded by Selected Centrality Measure
+            for (let i = 0; i < n; i++) {
+                const node = nodes[i];
+                if (!node) continue;
+                const score = rawScores[i] || 0;
+                const norm = (maxScore - minScore) > 1e-9 ? (score - minScore) / scoreSpan : 0.5;
+                const fillColor = getCentralityColor(norm);
+                const radius = getNodeRadius(i);
+                const isHovered = state.interaction.hoveredNode === node;
+
+                ctx.save();
+
+                // Outer glow on hover
+                if (isHovered) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, radius + 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'rgba(79, 70, 229, 0.18)';
+                    ctx.fill();
+                }
+
+                // Node Circle with soft shadow
+                ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 2;
+
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+
+                ctx.shadowColor = 'transparent';
+                ctx.lineWidth = isHovered ? 3 : 2.2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                // Node ID Label inside circle
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `700 ${radius > 19 ? '12px' : '11px'} Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+
+                // Small live centrality badge below node
+                ctx.font = '600 10px JetBrains Mono, monospace';
+                const scoreTxt = score.toFixed(2);
+                const stw = ctx.measureText(scoreTxt).width + 6;
+                const badgeY = node.y + radius + 9;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(node.x - stw / 2, badgeY - 7, stw, 14, 4);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#334155';
+                ctx.fillText(scoreTxt, node.x, badgeY);
+
+                ctx.restore();
+            }
+        }
+
+        function openMetricModal() {
+            const modal = document.getElementById('metricModalBackdrop');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            renderMetricTable();
+            // Wait a frame so canvas has layout dimensions
+            requestAnimationFrame(() => {
+                renderDegreeHistogram();
+            });
+        }
+
+        function closeMetricModal() {
+            const modal = document.getElementById('metricModalBackdrop');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function sortMetricTable(key) {
+            if (state.tableSortKey === key) {
+                state.tableSortAsc = !state.tableSortAsc;
+            } else {
+                state.tableSortKey = key;
+                state.tableSortAsc = key === 'id' || key === 'cluster';
+            }
+            renderMetricTable();
+        }
+
+        function renderMetricTable() {
+            const tbody = document.getElementById('metricTableBody');
+            const rows = [...state.metrics.nodes];
+            const k = state.tableSortKey;
+            const dir = state.tableSortAsc ? 1 : -1;
+
+            rows.sort((a, b) => (a[k] - b[k]) * dir);
+
+            // Compute min/max for active centrality to show subtle color pill
+            const scores = state.metrics.nodes.map(m => m[state.centralityMode] || 0);
+            const minS = Math.min(...scores);
+            const maxS = Math.max(...scores);
+            const span = (maxS - minS) > 1e-9 ? (maxS - minS) : 1;
+
+            tbody.innerHTML = rows.map(row => {
+                const cStyle = CLUSTER_PALETTE[(row.cluster - 1) % CLUSTER_PALETTE.length];
+                const norm = (maxS - minS) > 1e-9 ? (row[state.centralityMode] - minS) / span : 0.5;
+                const dotColor = getCentralityColor(norm);
+
+                return `<tr class="hover:bg-slate-50/90 transition">
+                    <td class="py-2.5 px-3 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full inline-block shadow-2xs" style="background:${dotColor}"></span>
+                        Node ${row.id}
+                    </td>
+                    <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold"
+                              style="background:${cStyle.badgeBg}; color:${cStyle.badgeText}; border:1px solid ${cStyle.stroke}33">
+                            Cluster #${row.cluster}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right font-medium text-slate-700">${row.inDeg}</td>
+                    <td class="py-2.5 px-3 text-right font-medium text-slate-700">${row.outDeg}</td>
+                    <td class="py-2.5 px-3 text-right font-bold text-indigo-700 bg-indigo-50/40">${row.totalDeg}</td>
+                    <td class="py-2.5 px-3 text-right text-slate-700">${row.eigenvector.toFixed(4)}</td>
+                    <td class="py-2.5 px-3 text-right text-slate-700">${row.katz.toFixed(4)}</td>
+                    <td class="py-2.5 px-3 text-right text-slate-700">${row.closeness.toFixed(4)}</td>
+                    <td class="py-2.5 px-3 text-right text-slate-700">${row.betweenness.toFixed(4)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setHistogramMode(mode) {
+            state.histogramMode = mode;
+            const btnAll = document.getElementById('histBtnAll');
+            const btnTotal = document.getElementById('histBtnTotal');
+            if (mode === 'all') {
+                btnAll.className = 'px-2.5 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700 cursor-pointer';
+                btnTotal.className = 'px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 cursor-pointer';
+            } else {
+                btnTotal.className = 'px-2.5 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700 cursor-pointer';
+                btnAll.className = 'px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 cursor-pointer';
+            }
+            renderDegreeHistogram();
+        }
+
+        function renderDegreeHistogram() {
+            const canvas = document.getElementById('histogramCanvas');
+            if (!canvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            const w = rect.width || 680;
+            const h = rect.height || 200;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            const nodes = state.metrics.nodes;
+            const maxDeg = Math.max(
+                4,
+                ...nodes.map(n => Math.max(n.totalDeg, n.inDeg, n.outDeg))
+            );
+
+            const totalBins = Array(maxDeg + 1).fill(0);
+            const inBins = Array(maxDeg + 1).fill(0);
+            const outBins = Array(maxDeg + 1).fill(0);
+
+            nodes.forEach(n => {
+                totalBins[n.totalDeg] = (totalBins[n.totalDeg] || 0) + 1;
+                inBins[n.inDeg] = (inBins[n.inDeg] || 0) + 1;
+                outBins[n.outDeg] = (outBins[n.outDeg] || 0) + 1;
+            });
+
+            const maxFreq = Math.max(1, ...totalBins, ...inBins, ...outBins);
+
+            const padLeft = 42;
+            const padRight = 20;
+            const padTop = 26;
+            const padBottom = 34;
+            const plotW = w - padLeft - padRight;
+            const plotH = h - padTop - padBottom;
+
+            // Grid lines & Y-axis labels
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 10px JetBrains Mono, monospace';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            const ySteps = Math.min(5, maxFreq);
+            for (let s = 0; s <= ySteps; s++) {
+                const val = (maxFreq / ySteps) * s;
+                const y = padTop + plotH - (val / maxFreq) * plotH;
+                ctx.beginPath();
+                ctx.moveTo(padLeft, y);
+                ctx.lineTo(w - padRight, y);
+                ctx.stroke();
+                if (Number.isInteger(val)) {
+                    ctx.fillText(String(val), padLeft - 8, y);
+                }
+            }
+
+            const numCategories = maxDeg + 1;
+            const groupW = plotW / numCategories;
+
+            for (let k = 0; k < numCategories; k++) {
+                const gx = padLeft + k * groupW;
+                if (state.histogramMode === 'all') {
+                    const barW = Math.min(18, (groupW * 0.72) / 3);
+                    const startX = gx + (groupW - barW * 3) / 2;
+
+                    const series = [
+                        { count: totalBins[k], color: '#4f46e5' }, // Total (Indigo)
+                        { count: inBins[k],    color: '#06b6d4' }, // In (Cyan)
+                        { count: outBins[k],   color: '#f59e0b' }  // Out (Amber)
+                    ];
+
+                    series.forEach((s, idx) => {
+                        if (s.count <= 0) return;
+                        const bh = (s.count / maxFreq) * plotH;
+                        const bx = startX + idx * barW;
+                        const by = padTop + plotH - bh;
+                        ctx.fillStyle = s.color;
+                        ctx.beginPath();
+                        ctx.roundRect(bx, by, Math.max(2, barW - 1.5), bh, [3, 3, 0, 0]);
+                        ctx.fill();
+                    });
+                } else {
+                    const barW = Math.min(34, groupW * 0.6);
+                    const bx = gx + (groupW - barW) / 2;
+                    const count = totalBins[k];
+                    if (count > 0) {
+                        const bh = (count / maxFreq) * plotH;
+                        const by = padTop + plotH - bh;
+                        ctx.fillStyle = '#4f46e5';
+                        ctx.beginPath();
+                        ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]);
+                        ctx.fill();
+                    }
+                }
+
+                // X-axis degree label
+                ctx.fillStyle = '#475569';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`k=${k}`, gx + groupW / 2, padTop + plotH + 8);
+            }
+
+            // Legend at top right
+            if (state.histogramMode === 'all') {
+                const legendItems = [
+                    { label: 'Total Deg', color: '#4f46e5' },
+                    { label: 'In-Degree', color: '#06b6d4' },
+                    { label: 'Out-Degree', color: '#f59e0b' }
+                ];
+                let lx = w - padRight - 240;
+                legendItems.forEach(item => {
+                    ctx.fillStyle = item.color;
+                    ctx.beginPath();
+                    ctx.roundRect(lx, 6, 10, 10, 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#334155';
+                    ctx.font = '600 10px Inter, sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(item.label, lx + 14, 11);
+                    lx += 82;
+                });
+            }
+        }
+
+        function setupCanvasInteractions() {
+            const canvas = document.getElementById('graphCanvas');
+            const wrapper = document.getElementById('canvasWrapper');
+            const tooltip = document.getElementById('nodeTooltip');
+
+            const resizeCanvas = () => {
+                const dpr = window.devicePixelRatio || 1;
+                const w = wrapper.clientWidth;
+                const h = wrapper.clientHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            };
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                if (!document.getElementById('metricModalBackdrop').classList.contains('hidden')) {
+                    renderDegreeHistogram();
+                }
+            });
+            resizeCanvas();
+
+            const getPointerPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            };
+
+            const findNodeAt = (x, y) => {
+                for (let i = state.nodes.length - 1; i >= 0; i--) {
+                    const n = state.nodes[i];
+                    if (Math.hypot(x - n.x, y - n.y) <= 24) {
+                        return n;
+                    }
+                }
+                return null;
+            };
+
+            const updateHoveredTooltip = (node) => {
+                if (!node) {
+                    tooltip.classList.add('hidden');
+                    return;
+                }
+                const m = state.metrics.nodes[node.id];
+                if (!m) return;
+
+                tooltip.classList.remove('hidden');
+                document.getElementById('ttNodeName').textContent = `Node ${m.id}`;
+                document.getElementById('ttClusterBadge').textContent = `Cluster #${m.cluster}`;
+                document.getElementById('ttInOut').textContent = `${m.inDeg} / ${m.outDeg} (Tot: ${m.totalDeg})`;
+                document.getElementById('ttEigen').textContent = m.eigenvector.toFixed(4);
+                document.getElementById('ttKatz').textContent = m.katz.toFixed(4);
+                document.getElementById('ttClose').textContent = m.closeness.toFixed(4);
+                document.getElementById('ttBetween').textContent = m.betweenness.toFixed(4);
+            };
+
+            canvas.addEventListener('mousedown', (e) => {
+                const pos = getPointerPos(e);
+                const hit = findNodeAt(pos.x, pos.y);
+                if (hit) {
+                    state.interaction.draggingNode = hit;
+                    hit.vx = 0;
+                    hit.vy = 0;
+                } else {
+                    state.interaction.panning = true;
+                    state.interaction.panStartX = pos.x;
+                    state.interaction.panStartY = pos.y;
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                const pos = getPointerPos(e);
+                if (state.interaction.draggingNode) {
+                    state.interaction.draggingNode.x = pos.x;
+                    state.interaction.draggingNode.y = pos.y;
+                    state.interaction.draggingNode.vx = 0;
+                    state.interaction.draggingNode.vy = 0;
+                } else if (state.interaction.panning) {
+                    const dx = pos.x - state.interaction.panStartX;
+                    const dy = pos.y - state.interaction.panStartY;
+                    state.interaction.panStartX = pos.x;
+                    state.interaction.panStartY = pos.y;
+                    state.nodes.forEach(n => {
+                        n.x += dx;
+                        n.y += dy;
+                    });
+                } else if (e.target === canvas) {
+                    const hit = findNodeAt(pos.x, pos.y);
+                    state.interaction.hoveredNode = hit;
+                    canvas.style.cursor = hit ? 'pointer' : 'grab';
+                    updateHoveredTooltip(hit);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                state.interaction.draggingNode = null;
+                state.interaction.panning = false;
+            });
+
+            // Touch support for mobile/tablet
+            canvas.addEventListener('touchstart', (e) => {
+                const pos = getPointerPos(e);
+                const hit = findNodeAt(pos.x, pos.y);
+                if (hit) {
+                    e.preventDefault();
+                    state.interaction.draggingNode = hit;
+                    updateHoveredTooltip(hit);
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (state.interaction.draggingNode) {
+                    e.preventDefault();
+                    const pos = getPointerPos(e);
+                    state.interaction.draggingNode.x = pos.x;
+                    state.interaction.draggingNode.y = pos.y;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                state.interaction.draggingNode = null;
+            });
+        }
+
+        function setDimension(newDim) {
+            const clamped = Math.max(MIN_DIM, Math.min(MAX_DIM, parseInt(newDim, 10) || 8));
+            const oldN = state.n;
+            state.n = clamped;
+
+            document.getElementById('dimSlider').value = clamped;
+            document.getElementById('dimValueLabel').textContent = `${clamped}×${clamped}`;
+
+            // If growing the matrix, connect new nodes lightly so they aren't completely isolated by default
+            if (clamped > oldN) {
+                for (let i = oldN; i < clamped; i++) {
+                    const hasAnyEdge = state.matrix[i].slice(0, clamped).some(v => v > 0);
+                    if (!hasAnyEdge) {
+                        const target = i % oldN;
+                        state.matrix[i][target] = 1;
+                        state.matrix[target][i] = 1;
+                    }
+                }
+            }
+
+            initNodesPosition(clamped, true);
+            renderMatrixGrid();
+            recalculateAllMetrics();
+        }
+
+        const TUTORIAL_STEPS = [
+            {
+                targetId: 'matrixPanelSection',
+                title: '1. Adjacency Matrix Input',
+                subtitle: 'Build & Edit Your Network (2×2 to 15×15)',
+                icon: 'ph-matrix-logo',
+                desc: 'Use the Matrix Size slider in the top bar to pick any dimension from 2 to 15. Click any cell A[i, j] in this grid to toggle connections (0 or 1) or type custom edge weights.',
+                tip: 'Uncheck "Mirror (Undirected)" at the top of this panel anytime you want to create asymmetric directed edges!',
+                preferredPlacement: 'right'
+            },
+            {
+                targetId: 'graphPanelSection',
+                title: '2. Live Graph & Dotted Clusters',
+                subtitle: 'Real-Time Topology & Community Detection',
+                icon: 'ph-share-network',
+                desc: 'Your graph updates immediately as you edit the matrix. Nodes can be dragged around freely, and smooth dotted lines automatically encircle groups of nodes that form community clusters.',
+                tip: 'Hover over any node to inspect its exact In/Out degree and all four centrality scores at a glance.',
+                preferredPlacement: 'left'
+            },
+            {
+                targetId: 'centralitySelectorGroup',
+                title: '3. Centrality Color-Coding',
+                subtitle: 'Eigenvector, Katz, Closeness & Betweenness',
+                icon: 'ph-palette',
+                desc: 'Switch between the four core centrality measures here. The graph immediately re-colors and scales every node from cool blue (low score) to vibrant rose (high centrality).',
+                tip: 'Try clicking through all 4 measures to see how bridge nodes light up under Betweenness while hub nodes dominate Eigenvector!',
+                preferredPlacement: 'bottom'
+            },
+            {
+                targetId: 'globalSummaryStripe',
+                title: '4. Global Network Summary Stripe',
+                subtitle: 'Macro-Level Structural Indicators',
+                icon: 'ph-gauge',
+                desc: 'This top stripe continuously tracks your whole network’s vital statistics: Network Diameter (longest shortest path), Average Edges per Node, Network Density, and Average Geodesic Distance.',
+                tip: 'Try clicking the topology Presets (like Star, Ring, or Clustered) to watch these global metrics shift in real time.',
+                preferredPlacement: 'bottom'
+            },
+            {
+                targetId: 'btnOpenMetrics',
+                title: '5. Detailed "Metric" Table & Histogram',
+                subtitle: 'Node-Level Breakdown & Degree Distribution',
+                icon: 'ph-table',
+                desc: 'Click the "Metric" button to open a dedicated analytics window featuring a sortable table of every node’s In-Degree, Out-Degree, and Centrality values, plus a Degree Distribution Histogram.',
+                tip: 'You can replay this quick guide anytime by clicking the "Tutorial" button right next to Metric!',
+                preferredPlacement: 'bottom-left'
+            }
+        ];
+
+        let currentTutorialStep = 0;
+        let tutorialActive = false;
+
+        function startTutorial() {
+            closeMetricModal();
+            currentTutorialStep = 0;
+            tutorialActive = true;
+            const overlay = document.getElementById('tutorialOverlay');
+            overlay.classList.remove('hidden');
+            renderTutorialStep();
+        }
+
+        function endTutorial() {
+            tutorialActive = false;
+            const overlay = document.getElementById('tutorialOverlay');
+            overlay.classList.add('hidden');
+        }
+
+        function nextTutorialStep() {
+            if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
+                currentTutorialStep++;
+                renderTutorialStep();
+            } else {
+                endTutorial();
+            }
+        }
+
+        function prevTutorialStep() {
+            if (currentTutorialStep > 0) {
+                currentTutorialStep--;
+                renderTutorialStep();
+            }
+        }
+
+        function goToTutorialStep(idx) {
+            if (idx >= 0 && idx < TUTORIAL_STEPS.length) {
+                currentTutorialStep = idx;
+                renderTutorialStep();
+            }
+        }
+
+        function renderTutorialStep() {
+            if (!tutorialActive) return;
+            const step = TUTORIAL_STEPS[currentTutorialStep];
+            const targetEl = document.getElementById(step.targetId);
+            if (!targetEl) return;
+
+            // Scroll target gently into view on smaller screens
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Update card text content
+            document.getElementById('tutStepCounter').textContent = `Step ${currentTutorialStep + 1} of ${TUTORIAL_STEPS.length}`;
+            document.getElementById('tutStepTitle').textContent = step.title;
+            document.getElementById('tutStepSubtitle').textContent = step.subtitle;
+            document.getElementById('tutStepDesc').textContent = step.desc;
+            document.getElementById('tutStepTip').textContent = step.tip;
+            document.getElementById('tutStepIcon').className = `ph-bold ${step.icon} text-lg`;
+
+            // Update Back / Next buttons
+            const btnBack = document.getElementById('tutBtnBack');
+            btnBack.style.visibility = currentTutorialStep === 0 ? 'hidden' : 'visible';
+
+            const isLast = currentTutorialStep === TUTORIAL_STEPS.length - 1;
+            document.getElementById('tutBtnNextText').textContent = isLast ? 'Start Exploring' : 'Next';
+            document.getElementById('tutBtnNextIcon').className = isLast ? 'ph-bold ph-check text-xs' : 'ph-bold ph-arrow-right text-xs';
+
+            // Render progress dots
+            const dotsContainer = document.getElementById('tutDotsContainer');
+            dotsContainer.innerHTML = TUTORIAL_STEPS.map((_, idx) => {
+                const active = idx === currentTutorialStep;
+                return `<button onclick="goToTutorialStep(${idx})" aria-label="Go to step ${idx + 1}"
+                    class="h-2 rounded-full transition-all cursor-pointer ${active ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-300 hover:bg-slate-400'}"></button>`;
+            }).join('');
+
+            positionSpotlightAndCard();
+        }
+
+        function positionSpotlightAndCard() {
+            if (!tutorialActive) return;
+            const step = TUTORIAL_STEPS[currentTutorialStep];
+            const targetEl = document.getElementById(step.targetId);
+            if (!targetEl) return;
+
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const rect = targetEl.getBoundingClientRect();
+            const pad = 6;
+
+            // Clamped spotlight cutout coordinates
+            const top = Math.max(0, rect.top - pad);
+            const left = Math.max(0, rect.left - pad);
+            const right = Math.min(vw, rect.right + pad);
+            const bottom = Math.min(vh, rect.bottom + pad);
+            const width = Math.max(0, right - left);
+            const height = Math.max(0, bottom - top);
+
+            // Position the 4 surrounding blur panes around the spotlight hole
+            const paneTop = document.getElementById('tutPaneTop');
+            const paneBottom = document.getElementById('tutPaneBottom');
+            const paneLeft = document.getElementById('tutPaneLeft');
+            const paneRight = document.getElementById('tutPaneRight');
+
+            paneTop.style.height = `${top}px`;
+
+            paneBottom.style.top = `${bottom}px`;
+            paneBottom.style.height = `${Math.max(0, vh - bottom)}px`;
+
+            paneLeft.style.top = `${top}px`;
+            paneLeft.style.height = `${height}px`;
+            paneLeft.style.width = `${left}px`;
+
+            paneRight.style.top = `${top}px`;
+            paneRight.style.height = `${height}px`;
+            paneRight.style.left = `${right}px`;
+            paneRight.style.width = `${Math.max(0, vw - right)}px`;
+
+            // Position highlight ring around the cutout
+            const ring = document.getElementById('tutorialHighlightRing');
+            ring.style.top = `${top}px`;
+            ring.style.left = `${left}px`;
+            ring.style.width = `${width}px`;
+            ring.style.height = `${height}px`;
+
+            // Position floating tutorial card smartly near the spotlight
+            const card = document.getElementById('tutorialCard');
+            const cardRect = card.getBoundingClientRect();
+            const cardW = cardRect.width || 380;
+            const cardH = cardRect.height || 275;
+            const margin = 16;
+
+            let cardLeft = (vw - cardW) / 2;
+            let cardTop = (vh - cardH) / 2;
+
+            if (vw < 1024) {
+                // Responsive placement on mobile/tablet: place below if space permits, else above or bottom-docked
+                if (vh - bottom >= cardH + margin * 1.5) {
+                    cardTop = bottom + margin;
+                } else if (top >= cardH + margin * 1.5) {
+                    cardTop = top - cardH - margin;
+                } else {
+                    cardTop = Math.max(margin, vh - cardH - margin);
+                }
+                cardLeft = Math.max(12, Math.min(vw - cardW - 12, (vw - cardW) / 2));
+            } else {
+                // Desktop placement based on preferred side
+                if (step.preferredPlacement === 'right' && (vw - right) >= cardW + margin * 1.5) {
+                    cardLeft = right + margin;
+                    cardTop = Math.max(margin, Math.min(vh - cardH - margin, top + 24));
+                } else if (step.preferredPlacement === 'left' && left >= cardW + margin * 1.5) {
+                    cardLeft = left - cardW - margin;
+                    cardTop = Math.max(margin, Math.min(vh - cardH - margin, top + 24));
+                } else if (step.preferredPlacement === 'bottom-left') {
+                    cardLeft = Math.max(margin, Math.min(vw - cardW - margin, right - cardW));
+                    cardTop = bottom + margin;
+                } else {
+                    // Default bottom or top
+                    cardLeft = Math.max(margin, Math.min(vw - cardW - margin, left + (width - cardW) / 2));
+                    if (vh - bottom >= cardH + margin) {
+                        cardTop = bottom + margin;
+                    } else {
+                        cardTop = Math.max(margin, top - cardH - margin);
+                    }
+                }
+            }
+
+            card.style.left = `${Math.round(cardLeft)}px`;
+            card.style.top = `${Math.round(cardTop)}px`;
+        }
+
+        window.onload = function () {
+            // Wire UI Controls
+            const dimSlider = document.getElementById('dimSlider');
+            dimSlider.addEventListener('input', (e) => setDimension(e.target.value));
+            document.getElementById('btnDimDec').addEventListener('click', () => setDimension(state.n - 1));
+            document.getElementById('btnDimInc').addEventListener('click', () => setDimension(state.n + 1));
+
+            document.getElementById('chkSymmetric').addEventListener('change', (e) => {
+                state.symmetricEdit = e.target.checked;
+            });
+            document.getElementById('chkShowClusters').addEventListener('change', (e) => {
+                state.showClusters = e.target.checked;
+            });
+            document.getElementById('chkPhysics').addEventListener('change', (e) => {
+                state.physicsEnabled = e.target.checked;
+            });
+
+            // Close modal on backdrop click or Escape key
+            document.getElementById('metricModalBackdrop').addEventListener('click', (e) => {
+                if (e.target.id === 'metricModalBackdrop') closeMetricModal();
+            });
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeMetricModal();
+                    if (tutorialActive) endTutorial();
+                } else if (tutorialActive && e.key === 'ArrowRight') {
+                    nextTutorialStep();
+                } else if (tutorialActive && e.key === 'ArrowLeft') {
+                    prevTutorialStep();
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (tutorialActive) positionSpotlightAndCard();
+            });
+            window.addEventListener('scroll', () => {
+                if (tutorialActive) positionSpotlightAndCard();
+            }, true);
+
+            setupCanvasInteractions();
+            applyPreset('clustered');
+
+            // Launch interactive spotlight tutorial automatically on startup
+            setTimeout(() => {
+                startTutorial();
+            }, 180);
+
+            // Start continuous 60fps animation loop
+            function animateLoop() {
+                stepForceSimulation();
+                drawGraphCanvas();
+                requestAnimationFrame(animateLoop);
+            }
+            animateLoop();
+        };
+    </script>
+</body>
+</html>
