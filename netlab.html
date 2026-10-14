@@ -74,6 +74,16 @@
         #tutorialCard {
             transition: top 0.32s cubic-bezier(0.16, 1, 0.3, 1), left 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s ease;
         }
+        html.tutorial-scroll-lock,
+        body.tutorial-scroll-lock {
+            overflow: hidden !important;
+            overscroll-behavior: none !important;
+            touch-action: none !important;
+        }
+        .tutorial-internal-scroll-lock {
+            overflow: hidden !important;
+            touch-action: none !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 select-none">
@@ -86,9 +96,9 @@
                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-600 text-white text-xs font-bold shadow-xs">
                         <i class="ph-bold ph-graph"></i>
                     </span>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Global Network Summary</span>
+                    <span id="lblGlobalSummaryTitle" class="text-xs font-bold uppercase tracking-wider text-slate-700">Resumen Global de la Red</span>
                     <span id="graphTypeBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        Undirected
+                        No Dirigido
                     </span>
                 </div>
 
@@ -100,10 +110,10 @@
                             <i class="ph-bold ph-arrows-out-line-horizontal text-sm"></i>
                         </div>
                         <div>
-                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Diameter</div>
+                            <div id="lblStatDiameter" class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Diámetro</div>
                             <div class="flex items-baseline gap-1">
                                 <span id="statDiameter" class="mono text-sm font-bold text-slate-800">0</span>
-                                <span class="text-[10px] text-slate-400">hops</span>
+                                <span id="lblDiameterUnit" class="text-[10px] text-slate-400">saltos</span>
                             </div>
                         </div>
                     </div>
@@ -114,7 +124,7 @@
                             <i class="ph-bold ph-git-commit text-sm"></i>
                         </div>
                         <div>
-                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Edges / Node</div>
+                            <div id="lblStatAvgEdges" class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Prom. Aristas / Nodo</div>
                             <div class="flex items-baseline gap-1.5">
                                 <span id="statAvgEdges" class="mono text-sm font-bold text-slate-800">0.00</span>
                                 <span id="statTotalEdges" class="text-[10px] text-slate-500 mono">(0 total)</span>
@@ -128,10 +138,10 @@
                             <i class="ph-bold ph-grid-four text-sm"></i>
                         </div>
                         <div>
-                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Network Density</div>
+                            <div id="lblStatDensity" class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Densidad de Red</div>
                             <div class="flex items-baseline gap-1">
                                 <span id="statDensity" class="mono text-sm font-bold text-slate-800">0.000</span>
-                                <span id="statClustersCount" class="text-[10px] text-emerald-600 font-medium">1 cluster</span>
+                                <span id="statClustersCount" class="text-[10px] text-emerald-600 font-medium">1 clúster</span>
                             </div>
                         </div>
                     </div>
@@ -142,10 +152,10 @@
                             <i class="ph-bold ph-path text-sm"></i>
                         </div>
                         <div>
-                            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Geodesic Dist</div>
+                            <div id="lblStatAvgGeodesic" class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Dist. Geodésica Prom.</div>
                             <div class="flex items-baseline gap-1">
                                 <span id="statAvgGeodesic" class="mono text-sm font-bold text-slate-800">0.000</span>
-                                <span class="text-[10px] text-slate-400">path len</span>
+                                <span id="lblGeodesicUnit" class="text-[10px] text-slate-400">long. ruta</span>
                             </div>
                         </div>
                     </div>
@@ -160,68 +170,76 @@
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
                         <label for="dimSlider" class="text-xs font-semibold text-slate-700 whitespace-nowrap">
-                            Matrix Size (<span class="mono font-bold text-indigo-600" id="dimValueLabel">8×8</span>):
+                            <span id="lblMatrixSize">Tamaño de Matriz</span> (<span class="mono font-bold text-indigo-600" id="dimValueLabel">8×8</span>):
                         </label>
                         <input id="dimSlider" type="range" min="2" max="15" value="8" 
                             class="w-24 sm:w-32 accent-indigo-600 cursor-pointer h-1.5 bg-slate-300 rounded-lg">
                         <div class="flex items-center gap-1">
-                            <button id="btnDimDec" title="Decrease Dimension" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">−</button>
-                            <button id="btnDimInc" title="Increase Dimension" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">+</button>
+                            <button id="btnDimDec" title="Disminuir dimensión" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">−</button>
+                            <button id="btnDimInc" title="Aumentar dimensión" class="w-6 h-6 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs font-bold shadow-2xs transition cursor-pointer">+</button>
                         </div>
                     </div>
 
                     <!-- Topology Presets -->
                     <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-xs font-medium text-slate-400 mr-0.5 hidden xl:inline">Presets:</span>
-                        <button onclick="applyPreset('clustered')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
-                            Clustered
+                        <span id="lblPresets" class="text-xs font-medium text-slate-400 mr-0.5 hidden xl:inline">Diseños:</span>
+                        <button id="btnPresetClustered" onclick="applyPreset('clustered')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Agrupado
                         </button>
-                        <button onclick="applyPreset('smallworld')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
-                            Small-World
+                        <button id="btnPresetSmallWorld" onclick="applyPreset('smallworld')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Mundo Pequeño
                         </button>
-                        <button onclick="applyPreset('star')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
-                            Star
+                        <button id="btnPresetStar" onclick="applyPreset('star')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Estrella
                         </button>
-                        <button onclick="applyPreset('ring')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
-                            Ring
+                        <button id="btnPresetRing" onclick="applyPreset('ring')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Anillo
                         </button>
-                        <button onclick="applyPreset('random')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
-                            Random
+                        <button id="btnPresetRandom" onclick="applyPreset('random')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition shadow-2xs cursor-pointer">
+                            Aleatorio
                         </button>
-                        <button onclick="applyPreset('clear')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition shadow-2xs cursor-pointer">
-                            Clear
+                        <button id="btnPresetClear" onclick="applyPreset('clear')" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition shadow-2xs cursor-pointer">
+                            Limpiar
                         </button>
                     </div>
                 </div>
 
-                <!-- Centrality Selector & Prominent "Metric" Button -->
-                <div class="flex flex-wrap items-center gap-3 ml-auto">
+                <!-- Centrality Selector, "Metric" Button, Tutorial & Language Toggle -->
+                <div class="flex flex-wrap items-center gap-2.5 ml-auto">
                     <div id="centralitySelectorGroup" class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                        <span class="text-[11px] font-semibold text-slate-500 px-2 hidden sm:inline">Color By:</span>
-                        <button data-centrality="eigenvector" onclick="setCentralityMode('eigenvector')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-indigo-700 shadow-xs">
-                            Eigenvector
+                        <span id="lblColorBy" class="text-[11px] font-semibold text-slate-500 px-2 hidden sm:inline">Colorear por:</span>
+                        <button id="btnCentEigen" data-centrality="eigenvector" onclick="setCentralityMode('eigenvector')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-indigo-700 shadow-xs">
+                            Vector Propio
                         </button>
-                        <button data-centrality="katz" onclick="setCentralityMode('katz')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                        <button id="btnCentKatz" data-centrality="katz" onclick="setCentralityMode('katz')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
                             Katz
                         </button>
-                        <button data-centrality="closeness" onclick="setCentralityMode('closeness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
-                            Closeness
+                        <button id="btnCentClose" data-centrality="closeness" onclick="setCentralityMode('closeness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            Cercanía
                         </button>
-                        <button data-centrality="betweenness" onclick="setCentralityMode('betweenness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
-                            Betweenness
+                        <button id="btnCentBetween" data-centrality="betweenness" onclick="setCentralityMode('betweenness')" class="centrality-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            Intermediación
                         </button>
                     </div>
 
                     <!-- Prominent Clickable "Metric" Button -->
                     <button id="btnOpenMetrics" onclick="openMetricModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition cursor-pointer">
                         <i class="ph-bold ph-table text-base"></i>
-                        <span>Metric</span>
+                        <span id="lblBtnMetric">Métricas</span>
                     </button>
 
                     <!-- Replay Tutorial Button -->
-                    <button id="btnStartTutorial" onclick="startTutorial()" title="Replay Interactive Walkthrough" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 font-semibold text-xs sm:text-sm shadow-2xs transition cursor-pointer">
+                    <button id="btnStartTutorial" onclick="startTutorial()" title="Repetir tutorial interactivo" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 font-semibold text-xs sm:text-sm shadow-2xs transition cursor-pointer">
                         <i class="ph-bold ph-question text-base text-indigo-600"></i>
-                        <span class="hidden sm:inline">Tutorial</span>
+                        <span id="lblBtnTutorial" class="hidden sm:inline">Tutorial</span>
+                    </button>
+
+                    <!-- Language Toggle Button (ES / EN) -->
+                    <button id="btnLangToggle" onclick="toggleLanguage()" title="Cambiar idioma (Español / Inglés)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 font-bold text-xs shadow-2xs transition cursor-pointer">
+                        <i class="ph-bold ph-translate text-base text-indigo-600"></i>
+                        <span id="langBadgeES" class="px-1.5 py-0.5 rounded bg-indigo-600 text-white text-[11px]">ES</span>
+                        <span class="text-slate-400">/</span>
+                        <span id="langBadgeEN" class="px-1.5 py-0.5 rounded text-slate-500 text-[11px]">EN</span>
                     </button>
                 </div>
             </div>
@@ -237,10 +255,10 @@
                 <div>
                     <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <i class="ph-bold ph-matrix-logo text-indigo-600 text-base"></i>
-                        Adjacency Matrix <span class="mono text-xs font-medium text-slate-500">A[i, j]</span>
+                        <span id="lblMatrixTitle">Matriz de Adyacencia</span> <span class="mono text-xs font-medium text-slate-500">A[i, j]</span>
                     </h2>
-                    <p class="text-[11px] text-slate-500 mt-0.5">
-                        Click a cell to toggle <span class="mono font-semibold text-slate-700">0/1</span> or type custom numeric weight
+                    <p id="lblMatrixSub" class="text-[11px] text-slate-500 mt-0.5">
+                        Haz clic en una celda para alternar <span class="mono font-semibold text-slate-700">0/1</span> o escribe un peso numérico
                     </p>
                 </div>
 
@@ -248,16 +266,16 @@
                 <div class="flex items-center gap-2">
                     <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-2xs">
                         <input id="chkSymmetric" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
-                        <span>Mirror <span class="text-slate-400">(Undirected)</span></span>
+                        <span id="lblMirrorToggle">Espejo <span class="text-slate-400">(No dirigido)</span></span>
                     </label>
-                    <button onclick="symmetrizeMatrix()" title="Force A[i,j] = A[j,i]" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
-                        Symmetrize
+                    <button id="btnSymmetrize" onclick="symmetrizeMatrix()" title="Forzar A[i,j] = A[j,i]" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
+                        Simetrizar
                     </button>
                 </div>
             </div>
 
             <!-- Matrix Grid Container -->
-            <div class="flex-1 p-3 sm:p-4 overflow-auto flex items-center justify-center bg-slate-50/30 min-h-[340px]">
+            <div id="matrixScrollViewport" class="flex-1 p-3 sm:p-4 overflow-auto flex items-center justify-center bg-slate-50/30 min-h-[340px]">
                 <div id="matrixContainer" class="inline-block bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
                     <!-- Populated dynamically via JS -->
                 </div>
@@ -268,15 +286,15 @@
                 <div class="flex items-center gap-3">
                     <span class="inline-flex items-center gap-1">
                         <span class="w-2.5 h-2.5 rounded-xs bg-indigo-100 border border-indigo-400 inline-block"></span>
-                        Active Edge (<span class="mono">w &gt; 0</span>)
+                        <span id="lblActiveEdge">Arista Activa</span> (<span class="mono">w &gt; 0</span>)
                     </span>
                     <span class="inline-flex items-center gap-1">
                         <span class="w-2.5 h-2.5 rounded-xs bg-slate-100 border border-slate-300 inline-block"></span>
-                        No Edge (<span class="mono">0</span>)
+                        <span id="lblNoEdge">Sin Arista</span> (<span class="mono">0</span>)
                     </span>
                 </div>
                 <div id="matrixHoverInfo" class="mono text-[11px] text-slate-500">
-                    Hover or edit any cell A[row, col]
+                    Pasa el cursor o edita cualquier celda A[fila, col]
                 </div>
             </div>
         </section>
@@ -288,24 +306,24 @@
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <i class="ph-bold ph-share-network text-indigo-600 text-base"></i>
-                        Real-Time Topology &amp; Community Clusters
+                        <span id="lblGraphPanelTitle">Topología en Tiempo Real y Clústeres</span>
                     </h2>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
                     <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer">
                         <input id="chkShowClusters" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
-                        <span>Dotted Clusters</span>
+                        <span id="lblDottedClusters">Clústeres Punteados</span>
                     </label>
                     <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 cursor-pointer">
                         <input id="chkPhysics" type="checkbox" checked class="accent-indigo-600 rounded cursor-pointer">
-                        <span>Force Layout</span>
+                        <span id="lblForceLayout">Diseño de Fuerzas</span>
                     </label>
                     <button onclick="arrangeCircularLayout()" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition cursor-pointer">
-                        <i class="ph ph-circle-dashed mr-0.5"></i> Circle
+                        <i class="ph ph-circle-dashed mr-0.5"></i> <span id="lblBtnCircle">Círculo</span>
                     </button>
                     <button onclick="resetCameraView()" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition cursor-pointer">
-                        <i class="ph ph-corners-out mr-0.5"></i> Fit
+                        <i class="ph ph-corners-out mr-0.5"></i> <span id="lblBtnFit">Ajustar</span>
                     </button>
                 </div>
             </div>
@@ -318,18 +336,18 @@
                 <div class="absolute bottom-3 left-3 right-3 sm:right-auto bg-white/95 backdrop-blur-xs border border-slate-200/90 rounded-xl p-2.5 shadow-sm flex flex-col gap-1.5 max-w-xs pointer-events-none">
                     <div class="flex items-center justify-between gap-4">
                         <span id="legendTitle" class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Eigenvector Centrality
+                            Centralidad de Vector Propio
                         </span>
-                        <span class="text-[10px] font-medium text-slate-400">Normalized [0, 1]</span>
+                        <span id="lblNormalized" class="text-[10px] font-medium text-slate-400">Normalizado [0, 1]</span>
                     </div>
                     <!-- Gradient Bar -->
                     <div class="h-2.5 w-full rounded-full border border-slate-200/60"
                          style="background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 28%, #10b981 55%, #f59e0b 78%, #e11d48 100%);">
                     </div>
                     <div class="flex justify-between text-[10px] mono font-medium text-slate-500">
-                        <span id="legendMin">Min: 0.000</span>
-                        <span>Med</span>
-                        <span id="legendMax">Max: 1.000</span>
+                        <span id="legendMin">Mín: 0.000</span>
+                        <span id="lblLegendMed">Med</span>
+                        <span id="legendMax">Máx: 1.000</span>
                     </div>
                 </div>
 
@@ -338,16 +356,16 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-1.5 mb-2">
                         <div class="flex items-center gap-2">
                             <span id="ttColorDot" class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span>
-                            <span id="ttNodeName" class="font-bold text-xs text-slate-800">Node 1</span>
+                            <span id="ttNodeName" class="font-bold text-xs text-slate-800">Nodo 1</span>
                         </div>
-                        <span id="ttClusterBadge" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Cluster #1</span>
+                        <span id="ttClusterBadge" class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Clúster #1</span>
                     </div>
                     <div class="space-y-1 text-[11px]">
-                        <div class="flex justify-between"><span class="text-slate-500">In / Out Degree:</span><span id="ttInOut" class="mono font-semibold text-slate-800">0 / 0</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Eigenvector:</span><span id="ttEigen" class="mono font-semibold text-slate-800">0.000</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Katz:</span><span id="ttKatz" class="mono font-semibold text-slate-800">0.000</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Closeness:</span><span id="ttClose" class="mono font-semibold text-slate-800">0.000</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Betweenness:</span><span id="ttBetween" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span id="lblTtInOut" class="text-slate-500">Grado Ent / Sal:</span><span id="ttInOut" class="mono font-semibold text-slate-800">0 / 0</span></div>
+                        <div class="flex justify-between"><span id="lblTtEigen" class="text-slate-500">Vector Propio:</span><span id="ttEigen" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span id="lblTtKatz" class="text-slate-500">Katz:</span><span id="ttKatz" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span id="lblTtClose" class="text-slate-500">Cercanía:</span><span id="ttClose" class="mono font-semibold text-slate-800">0.000</span></div>
+                        <div class="flex justify-between"><span id="lblTtBetween" class="text-slate-500">Intermediación:</span><span id="ttBetween" class="mono font-semibold text-slate-800">0.000</span></div>
                     </div>
                 </div>
             </div>
@@ -355,12 +373,12 @@
             <!-- Canvas Footer Bar -->
             <div class="p-2.5 sm:px-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
                 <div class="flex items-center gap-3">
-                    <span><i class="ph-bold ph-hand-grabbing text-slate-400 mr-1"></i>Drag nodes to reposition</span>
+                    <span><i class="ph-bold ph-hand-grabbing text-slate-400 mr-1"></i><span id="lblDragHint">Arrastra los nodos para moverlos</span></span>
                     <span class="hidden sm:inline">•</span>
-                    <span class="hidden sm:inline"><i class="ph-bold ph-selection-all text-slate-400 mr-1"></i>Dotted contours enclose detected Louvain/Modularity clusters</span>
+                    <span class="hidden sm:inline"><i class="ph-bold ph-selection-all text-slate-400 mr-1"></i><span id="lblClusterHint">Las líneas punteadas rodean los clústeres de modularidad detectados</span></span>
                 </div>
                 <div id="clusterSummaryText" class="font-medium text-slate-600">
-                    2 Communities Detected
+                    2 Clústeres Comunitarios Rodeados
                 </div>
             </div>
         </section>
@@ -375,8 +393,8 @@
                         <i class="ph-bold ph-chart-bar text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">Node Centrality Metrics &amp; Degree Distribution</h3>
-                        <p class="text-xs text-slate-500">Real-time node-level topological table (including In/Out Degree) and degree frequency histogram</p>
+                        <h3 id="lblModalTitle" class="text-base font-bold text-slate-900">Métricas de Centralidad por Nodo y Distribución de Grados</h3>
+                        <p id="lblModalSub" class="text-xs text-slate-500">Tabla topológica en tiempo real (incluyendo Grado de Entrada/Salida) e histograma de frecuencias</p>
                     </div>
                 </div>
                 <button onclick="closeMetricModal()" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition cursor-pointer">
@@ -393,13 +411,13 @@
                         <div>
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                                 <i class="ph-bold ph-chart-bar-horizontal text-indigo-600"></i>
-                                Degree Distribution Histogram <span class="mono font-normal text-slate-400">P(k)</span>
+                                <span id="lblHistTitle">Histograma de Distribución de Grados</span> <span class="mono font-normal text-slate-400">P(k)</span>
                             </h4>
-                            <p class="text-[11px] text-slate-500">Frequency of nodes by Total Degree, In-Degree, and Out-Degree</p>
+                            <p id="lblHistSub" class="text-[11px] text-slate-500">Frecuencia de nodos por Grado Total, Grado de Entrada y Grado de Salida</p>
                         </div>
                         <div class="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
-                            <button onclick="setHistogramMode('all')" id="histBtnAll" class="px-2.5 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700 cursor-pointer">Grouped (Total/In/Out)</button>
-                            <button onclick="setHistogramMode('total')" id="histBtnTotal" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Total Degree Only</button>
+                            <button onclick="setHistogramMode('all')" id="histBtnAll" class="px-2.5 py-1 rounded-md font-semibold bg-indigo-50 text-indigo-700 cursor-pointer">Agrupado (Total/Ent/Sal)</button>
+                            <button onclick="setHistogramMode('total')" id="histBtnTotal" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Solo Grado Total</button>
                         </div>
                     </div>
                     <div class="w-full h-56 bg-white rounded-lg border border-slate-200 p-3 relative">
@@ -412,23 +430,23 @@
                     <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                             <i class="ph-bold ph-table text-indigo-600"></i>
-                            Node-Level Centrality &amp; Degree Table
+                            <span id="lblTableTitle">Tabla de Centralidad y Grados por Nodo</span>
                         </h4>
-                        <span class="text-[11px] text-slate-500">Click any column header to sort nodes</span>
+                        <span id="lblTableSortHint" class="text-[11px] text-slate-500">Haz clic en cualquier encabezado de columna para ordenar</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                                    <th onclick="sortMetricTable('id')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600">Node <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('cluster')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600">Cluster <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('inDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">In-Degree <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('outDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Out-Degree <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('totalDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Total Deg <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('eigenvector')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Eigenvector <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('katz')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Katz <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('closeness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Closeness <i class="ph ph-caret-up-down"></i></th>
-                                    <th onclick="sortMetricTable('betweenness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right">Betweenness <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('id')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600"><span id="thNode">Nodo</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('cluster')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600"><span id="thCluster">Clúster</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('inDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thInDeg">Grado Entrada</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('outDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thOutDeg">Grado Salida</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('totalDeg')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thTotalDeg">Grado Total</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('eigenvector')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thEigen">Vector Propio</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('katz')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thKatz">Katz</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('closeness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thClose">Cercanía</span> <i class="ph ph-caret-up-down"></i></th>
+                                    <th onclick="sortMetricTable('betweenness')" class="py-2.5 px-3 cursor-pointer hover:text-indigo-600 text-right"><span id="thBetween">Intermediación</span> <i class="ph ph-caret-up-down"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="metricTableBody" class="divide-y divide-slate-200 text-xs mono">
@@ -442,11 +460,11 @@
 
             <!-- Modal Footer -->
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                <div class="text-xs text-slate-500">
-                    Centrality scores are normalized for direct comparison across topologies.
+                <div id="lblModalFooterNote" class="text-xs text-slate-500">
+                    Los puntajes de centralidad están normalizados para su comparación directa entre topologías.
                 </div>
-                <button onclick="closeMetricModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition cursor-pointer">
-                    Close Window
+                <button id="btnModalClose" onclick="closeMetricModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition cursor-pointer">
+                    Cerrar Ventana
                 </button>
             </div>
         </div>
@@ -469,10 +487,10 @@
             <div class="flex items-center justify-between gap-2 mb-3">
                 <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/80">
                     <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                    <span id="tutStepCounter" class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Step 1 of 5</span>
+                    <span id="tutStepCounter" class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Paso 1 de 5</span>
                 </div>
-                <button onclick="endTutorial()" class="text-xs font-semibold text-slate-400 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                    Skip Tutorial
+                <button id="tutBtnSkip" onclick="endTutorial()" class="text-xs font-semibold text-slate-400 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    Omitir tutorial
                 </button>
             </div>
 
@@ -483,24 +501,24 @@
                 </div>
                 <div>
                     <h3 id="tutStepTitle" class="text-base font-bold text-slate-900 leading-snug">
-                        Welcome &amp; Adjacency Matrix
+                        1. Matriz de Adyacencia
                     </h3>
                     <p id="tutStepSubtitle" class="text-[11px] font-medium text-indigo-600">
-                        Interactive Input Panel
+                        Panel de Entrada Interactiva
                     </p>
                 </div>
             </div>
 
             <!-- Step Description -->
             <p id="tutStepDesc" class="text-xs text-slate-600 leading-relaxed mb-4">
-                Set your network size from 2×2 up to 15×15 using the top slider, then click any cell to toggle an edge (0 or 1) or type custom weights.
+                Ajusta el tamaño de la red de 2×2 hasta 15×15 con el control superior y haz clic en cualquier celda para activar/desactivar una arista (0 o 1) o escribir pesos personalizados.
             </p>
 
             <!-- Quick Tip Box -->
             <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 mb-4 flex items-start gap-2">
                 <i class="ph-fill ph-lightbulb text-amber-500 text-sm shrink-0 mt-0.5"></i>
                 <p id="tutStepTip" class="text-[11px] text-slate-600 leading-normal">
-                    Keep "Mirror (Undirected)" checked for symmetric links, or uncheck it to build directed graphs with arrows!
+                    ¡Mantén marcada la opción "Espejo (No dirigido)" para enlaces simétricos o desmárcala para crear grafos dirigidos con flechas!
                 </p>
             </div>
 
@@ -512,10 +530,10 @@
 
                 <div class="flex items-center gap-2">
                     <button id="tutBtnBack" onclick="prevTutorialStep()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition cursor-pointer">
-                        Back
+                        Anterior
                     </button>
                     <button id="tutBtnNext" onclick="nextTutorialStep()" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition cursor-pointer">
-                        <span id="tutBtnNextText">Next</span>
+                        <span id="tutBtnNextText">Siguiente</span>
                         <i id="tutBtnNextIcon" class="ph-bold ph-arrow-right text-xs"></i>
                     </button>
                 </div>
@@ -526,6 +544,289 @@
     <script>
         const MAX_DIM = 15;
         const MIN_DIM = 2;
+
+        const I18N = {
+            es: {
+                pageTitle: 'NetLab — Estudio Interactivo de Grafos y Centralidad',
+                globalSummaryTitle: 'Resumen Global de la Red',
+                directedGraph: 'Grafo Dirigido',
+                undirectedGraph: 'Grafo No Dirigido',
+                statDiameter: 'Diámetro',
+                diameterUnit: 'saltos',
+                statAvgEdges: 'Prom. Aristas / Nodo',
+                totalSuffix: 'total',
+                statDensity: 'Densidad de Red',
+                clusterSingular: 'clúster',
+                clusterPlural: 'clústeres',
+                statAvgGeodesic: 'Dist. Geodésica Prom.',
+                geodesicUnit: 'long. ruta',
+                matrixSize: 'Tamaño de Matriz',
+                dimDecTitle: 'Disminuir dimensión',
+                dimIncTitle: 'Aumentar dimensión',
+                presetsLabel: 'Diseños:',
+                presetClustered: 'Agrupado',
+                presetSmallWorld: 'Mundo Pequeño',
+                presetStar: 'Estrella',
+                presetRing: 'Anillo',
+                presetRandom: 'Aleatorio',
+                presetClear: 'Limpiar',
+                colorBy: 'Colorear por:',
+                centEigen: 'Vector Propio',
+                centKatz: 'Katz',
+                centClose: 'Cercanía',
+                centBetween: 'Intermediación',
+                btnMetric: 'Métricas',
+                btnTutorial: 'Tutorial',
+                btnTutorialTitle: 'Repetir tutorial interactivo',
+                matrixTitle: 'Matriz de Adyacencia',
+                matrixSub: 'Haz clic en una celda para alternar <span class="mono font-semibold text-slate-700">0/1</span> o escribe un peso numérico',
+                mirrorToggle: 'Espejo <span class="text-slate-400">(No dirigido)</span>',
+                btnSymmetrize: 'Simetrizar',
+                btnSymmetrizeTitle: 'Forzar A[i,j] = A[j,i]',
+                activeEdge: 'Arista Activa',
+                noEdge: 'Sin Arista',
+                matrixHoverDefault: 'Pasa el cursor o edita cualquier celda A[fila, col]',
+                selfLoop: 'Bucle propio',
+                edgePrefix: 'Arista',
+                graphPanelTitle: 'Topología en Tiempo Real y Clústeres',
+                dottedClusters: 'Clústeres Punteados',
+                forceLayout: 'Diseño de Fuerzas',
+                btnCircle: 'Círculo',
+                btnFit: 'Ajustar',
+                legendTitles: {
+                    eigenvector: 'Centralidad de Vector Propio',
+                    katz: 'Centralidad de Katz',
+                    closeness: 'Centralidad de Cercanía',
+                    betweenness: 'Centralidad de Intermediación'
+                },
+                normalizedLabel: 'Normalizado [0, 1]',
+                minPrefix: 'Mín',
+                medLabel: 'Med',
+                maxPrefix: 'Máx',
+                nodeWord: 'Nodo',
+                clusterWord: 'Clúster',
+                ttInOut: 'Grado Ent / Sal:',
+                ttTot: 'Tot',
+                dragHint: 'Arrastra los nodos para moverlos',
+                clusterHint: 'Las líneas punteadas rodean los clústeres de modularidad detectados',
+                clusterEncircledSingular: 'Clúster Comunitario Rodeado',
+                clusterEncircledPlural: 'Clústeres Comunitarios Rodeados',
+                modalTitle: 'Métricas de Centralidad por Nodo y Distribución de Grados',
+                modalSub: 'Tabla topológica en tiempo real (incluyendo Grado de Entrada/Salida) e histograma de frecuencias',
+                histTitle: 'Histograma de Distribución de Grados',
+                histSub: 'Frecuencia de nodos por Grado Total, Grado de Entrada y Grado de Salida',
+                histBtnAll: 'Agrupado (Total/Ent/Sal)',
+                histBtnTotal: 'Solo Grado Total',
+                histLegendTotal: 'Grado Total',
+                histLegendIn: 'Grado Entrada',
+                histLegendOut: 'Grado Salida',
+                tableTitle: 'Tabla de Centralidad y Grados por Nodo',
+                tableSortHint: 'Haz clic en cualquier encabezado de columna para ordenar',
+                thNode: 'Nodo',
+                thCluster: 'Clúster',
+                thInDeg: 'Grado Entrada',
+                thOutDeg: 'Grado Salida',
+                thTotalDeg: 'Grado Total',
+                thEigen: 'Vector Propio',
+                thKatz: 'Katz',
+                thClose: 'Cercanía',
+                thBetween: 'Intermediación',
+                modalFooterNote: 'Los puntajes de centralidad están normalizados para su comparación directa entre topologías.',
+                btnModalClose: 'Cerrar Ventana',
+                tutStepOf: (cur, tot) => `Paso ${cur} de ${tot}`,
+                tutSkip: 'Omitir tutorial',
+                tutBack: 'Anterior',
+                tutNext: 'Siguiente',
+                tutFinish: 'Finalizar',
+                tutSteps: [
+                    {
+                        targetId: 'matrixPanelSection',
+                        title: '1. Matriz de Adyacencia',
+                        subtitle: 'Construye y Edita tu Red (2×2 a 15×15)',
+                        icon: 'ph-matrix-logo',
+                        desc: 'Usa el control deslizable superior para elegir cualquier dimensión de 2 a 15. Haz clic en cualquier celda A[i, j] para alternar conexiones (0 o 1) o escribe pesos personalizados.',
+                        tip: '¡Desmarca "Espejo (No dirigido)" en la parte superior de este panel cuando quieras crear aristas dirigidas asimétricas con flechas!',
+                        preferredPlacement: 'right'
+                    },
+                    {
+                        targetId: 'graphPanelSection',
+                        title: '2. Grafo en Tiempo Real y Clústeres',
+                        subtitle: 'Topología Viva y Detección de Comunidades',
+                        icon: 'ph-share-network',
+                        desc: 'Tu grafo se actualiza al instante mientras editas la matriz. Puedes arrastrar los nodos libremente y las líneas punteadas rodean automáticamente los clústeres detectados.',
+                        tip: 'Pasa el cursor sobre cualquier nodo para inspeccionar su grado de entrada/salida y sus cuatro medidas de centralidad.',
+                        preferredPlacement: 'left'
+                    },
+                    {
+                        targetId: 'centralitySelectorGroup',
+                        title: '3. Coloreado por Centralidad',
+                        subtitle: 'Vector Propio, Katz, Cercanía e Intermediación',
+                        icon: 'ph-palette',
+                        desc: 'Cambia entre las cuatro medidas de centralidad aquí. El grafo recolorea y escala cada nodo al instante desde azul frío (puntaje bajo) hasta rosa intenso (alta centralidad).',
+                        tip: '¡Prueba las 4 medidas para ver cómo los nodos puente destacan en Intermediación mientras los nodos centrales dominan en Vector Propio!',
+                        preferredPlacement: 'bottom'
+                    },
+                    {
+                        targetId: 'globalSummaryStripe',
+                        title: '4. Resumen Global de la Red',
+                        subtitle: 'Indicadores Estructurales Macro',
+                        icon: 'ph-gauge',
+                        desc: 'Esta franja superior calcula en vivo las estadísticas clave de toda la red: Diámetro, Promedio de Aristas por Nodo, Densidad de Red y Distancia Geodésica Promedio.',
+                        tip: 'Haz clic en los botones de Diseños (Agrupado, Mundo Pequeño, Estrella, Anillo) para observar cómo cambian estos indicadores.',
+                        preferredPlacement: 'bottom'
+                    },
+                    {
+                        targetId: 'btnOpenMetrics',
+                        title: '5. Ventana de "Métricas" e Histograma',
+                        subtitle: 'Tabla Detallada y Distribución de Grados',
+                        icon: 'ph-table',
+                        desc: 'Haz clic en el botón "Métricas" para abrir una ventana con la tabla ordenable de cada nodo (Grado de Entrada, Salida, Total y Centralidades) junto al Histograma de Grados.',
+                        tip: '¡Puedes volver a ver esta guía en cualquier momento haciendo clic en el botón "Tutorial" o cambiar el idioma con "ES / EN"!',
+                        preferredPlacement: 'bottom-left'
+                    }
+                ]
+            },
+            en: {
+                pageTitle: 'NetLab — Interactive Graph & Centrality Analysis Studio',
+                globalSummaryTitle: 'Global Network Summary',
+                directedGraph: 'Directed Graph',
+                undirectedGraph: 'Undirected Graph',
+                statDiameter: 'Diameter',
+                diameterUnit: 'hops',
+                statAvgEdges: 'Avg Edges / Node',
+                totalSuffix: 'total',
+                statDensity: 'Network Density',
+                clusterSingular: 'cluster',
+                clusterPlural: 'clusters',
+                statAvgGeodesic: 'Avg Geodesic Dist',
+                geodesicUnit: 'path len',
+                matrixSize: 'Matrix Size',
+                dimDecTitle: 'Decrease Dimension',
+                dimIncTitle: 'Increase Dimension',
+                presetsLabel: 'Presets:',
+                presetClustered: 'Clustered',
+                presetSmallWorld: 'Small-World',
+                presetStar: 'Star',
+                presetRing: 'Ring',
+                presetRandom: 'Random',
+                presetClear: 'Clear',
+                colorBy: 'Color By:',
+                centEigen: 'Eigenvector',
+                centKatz: 'Katz',
+                centClose: 'Closeness',
+                centBetween: 'Betweenness',
+                btnMetric: 'Metric',
+                btnTutorial: 'Tutorial',
+                btnTutorialTitle: 'Replay Interactive Walkthrough',
+                matrixTitle: 'Adjacency Matrix',
+                matrixSub: 'Click a cell to toggle <span class="mono font-semibold text-slate-700">0/1</span> or type custom numeric weight',
+                mirrorToggle: 'Mirror <span class="text-slate-400">(Undirected)</span>',
+                btnSymmetrize: 'Symmetrize',
+                btnSymmetrizeTitle: 'Force A[i,j] = A[j,i]',
+                activeEdge: 'Active Edge',
+                noEdge: 'No Edge',
+                matrixHoverDefault: 'Hover or edit any cell A[row, col]',
+                selfLoop: 'Self-loop',
+                edgePrefix: 'Edge',
+                graphPanelTitle: 'Real-Time Topology & Community Clusters',
+                dottedClusters: 'Dotted Clusters',
+                forceLayout: 'Force Layout',
+                btnCircle: 'Circle',
+                btnFit: 'Fit',
+                legendTitles: {
+                    eigenvector: 'Eigenvector Centrality',
+                    katz: 'Katz Centrality',
+                    closeness: 'Closeness Centrality',
+                    betweenness: 'Betweenness Centrality'
+                },
+                normalizedLabel: 'Normalized [0, 1]',
+                minPrefix: 'Min',
+                medLabel: 'Med',
+                maxPrefix: 'Max',
+                nodeWord: 'Node',
+                clusterWord: 'Cluster',
+                ttInOut: 'In / Out Degree:',
+                ttTot: 'Tot',
+                dragHint: 'Drag nodes to reposition',
+                clusterHint: 'Dotted contours enclose detected Louvain/Modularity clusters',
+                clusterEncircledSingular: 'Community Cluster Encircled',
+                clusterEncircledPlural: 'Community Clusters Encircled',
+                modalTitle: 'Node Centrality Metrics & Degree Distribution',
+                modalSub: 'Real-time node-level topological table (including In/Out Degree) and degree frequency histogram',
+                histTitle: 'Degree Distribution Histogram',
+                histSub: 'Frequency of nodes by Total Degree, In-Degree, and Out-Degree',
+                histBtnAll: 'Grouped (Total/In/Out)',
+                histBtnTotal: 'Total Degree Only',
+                histLegendTotal: 'Total Deg',
+                histLegendIn: 'In-Degree',
+                histLegendOut: 'Out-Degree',
+                tableTitle: 'Node-Level Centrality & Degree Table',
+                tableSortHint: 'Click any column header to sort nodes',
+                thNode: 'Node',
+                thCluster: 'Cluster',
+                thInDeg: 'In-Degree',
+                thOutDeg: 'Out-Degree',
+                thTotalDeg: 'Total Deg',
+                thEigen: 'Eigenvector',
+                thKatz: 'Katz',
+                thClose: 'Closeness',
+                thBetween: 'Betweenness',
+                modalFooterNote: 'Centrality scores are normalized for direct comparison across topologies.',
+                btnModalClose: 'Close Window',
+                tutStepOf: (cur, tot) => `Step ${cur} of ${tot}`,
+                tutSkip: 'Skip Tutorial',
+                tutBack: 'Back',
+                tutNext: 'Next',
+                tutFinish: 'Finish',
+                tutSteps: [
+                    {
+                        targetId: 'matrixPanelSection',
+                        title: '1. Adjacency Matrix Input',
+                        subtitle: 'Build & Edit Your Network (2×2 to 15×15)',
+                        icon: 'ph-matrix-logo',
+                        desc: 'Use the Matrix Size slider in the top bar to pick any dimension from 2 to 15. Click any cell A[i, j] in this grid to toggle connections (0 or 1) or type custom edge weights.',
+                        tip: 'Uncheck "Mirror (Undirected)" at the top of this panel anytime you want to create asymmetric directed edges!',
+                        preferredPlacement: 'right'
+                    },
+                    {
+                        targetId: 'graphPanelSection',
+                        title: '2. Live Graph & Dotted Clusters',
+                        subtitle: 'Real-Time Topology & Community Detection',
+                        icon: 'ph-share-network',
+                        desc: 'Your graph updates immediately as you edit the matrix. Nodes can be dragged around freely, and smooth dotted lines automatically encircle groups of nodes that form community clusters.',
+                        tip: 'Hover over any node to inspect its exact In/Out degree and all four centrality scores at a glance.',
+                        preferredPlacement: 'left'
+                    },
+                    {
+                        targetId: 'centralitySelectorGroup',
+                        title: '3. Centrality Color-Coding',
+                        subtitle: 'Eigenvector, Katz, Closeness & Betweenness',
+                        icon: 'ph-palette',
+                        desc: 'Switch between the four core centrality measures here. The graph immediately re-colors and scales every node from cool blue (low score) to vibrant rose (high centrality).',
+                        tip: 'Try clicking through all 4 measures to see how bridge nodes light up under Betweenness while hub nodes dominate Eigenvector!',
+                        preferredPlacement: 'bottom'
+                    },
+                    {
+                        targetId: 'globalSummaryStripe',
+                        title: '4. Global Network Summary Stripe',
+                        subtitle: 'Macro-Level Structural Indicators',
+                        icon: 'ph-gauge',
+                        desc: 'This top stripe continuously tracks your whole network’s vital statistics: Network Diameter (longest shortest path), Average Edges per Node, Network Density, and Average Geodesic Distance.',
+                        tip: 'Try clicking the topology Presets (like Star, Ring, or Clustered) to watch these global metrics shift in real time.',
+                        preferredPlacement: 'bottom'
+                    },
+                    {
+                        targetId: 'btnOpenMetrics',
+                        title: '5. Detailed "Metric" Table & Histogram',
+                        subtitle: 'Node-Level Breakdown & Degree Distribution',
+                        icon: 'ph-table',
+                        desc: 'Click the "Metric" button to open a dedicated analytics window featuring a sortable table of every node’s In-Degree, Out-Degree, and Centrality values, plus a Degree Distribution Histogram.',
+                        tip: 'You can replay this quick guide anytime by clicking "Tutorial" or switch languages via "ES / EN"!',
+                        preferredPlacement: 'bottom-left'
+                    }
+                ]
+            }
+        };
 
         // Distinct light-mode friendly cluster palette
         const CLUSTER_PALETTE = [
@@ -539,6 +840,7 @@
         ];
 
         const state = {
+            lang: 'es', // Default language set to Spanish ('es')
             n: 8,
             // 15x15 backing matrix so resizing preserves patterns smoothly
             matrix: Array.from({ length: MAX_DIM }, () => Array(MAX_DIM).fill(0)),
@@ -572,6 +874,125 @@
                 highlightedCell: null // {r, c}
             }
         };
+
+        function t() {
+            return I18N[state.lang] || I18N.es;
+        }
+
+        function toggleLanguage() {
+            state.lang = state.lang === 'es' ? 'en' : 'es';
+            applyLanguageUI();
+        }
+
+        function applyLanguageUI() {
+            const dict = t();
+            document.documentElement.lang = state.lang;
+            document.title = dict.pageTitle;
+
+            // Update ES / EN Toggle Badge Visual State
+            const badgeES = document.getElementById('langBadgeES');
+            const badgeEN = document.getElementById('langBadgeEN');
+            if (state.lang === 'es') {
+                badgeES.className = 'px-1.5 py-0.5 rounded bg-indigo-600 text-white text-[11px]';
+                badgeEN.className = 'px-1.5 py-0.5 rounded text-slate-500 text-[11px]';
+            } else {
+                badgeEN.className = 'px-1.5 py-0.5 rounded bg-indigo-600 text-white text-[11px]';
+                badgeES.className = 'px-1.5 py-0.5 rounded text-slate-500 text-[11px]';
+            }
+
+            // Global Summary Stripe
+            document.getElementById('lblGlobalSummaryTitle').textContent = dict.globalSummaryTitle;
+            document.getElementById('lblStatDiameter').textContent = dict.statDiameter;
+            document.getElementById('lblDiameterUnit').textContent = dict.diameterUnit;
+            document.getElementById('lblStatAvgEdges').textContent = dict.statAvgEdges;
+            document.getElementById('lblStatDensity').textContent = dict.statDensity;
+            document.getElementById('lblStatAvgGeodesic').textContent = dict.statAvgGeodesic;
+            document.getElementById('lblGeodesicUnit').textContent = dict.geodesicUnit;
+
+            // Secondary Control Bar
+            document.getElementById('lblMatrixSize').textContent = dict.matrixSize;
+            document.getElementById('btnDimDec').title = dict.dimDecTitle;
+            document.getElementById('btnDimInc').title = dict.dimIncTitle;
+            document.getElementById('lblPresets').textContent = dict.presetsLabel;
+            document.getElementById('btnPresetClustered').textContent = dict.presetClustered;
+            document.getElementById('btnPresetSmallWorld').textContent = dict.presetSmallWorld;
+            document.getElementById('btnPresetStar').textContent = dict.presetStar;
+            document.getElementById('btnPresetRing').textContent = dict.presetRing;
+            document.getElementById('btnPresetRandom').textContent = dict.presetRandom;
+            document.getElementById('btnPresetClear').textContent = dict.presetClear;
+
+            document.getElementById('lblColorBy').textContent = dict.colorBy;
+            document.getElementById('btnCentEigen').textContent = dict.centEigen;
+            document.getElementById('btnCentKatz').textContent = dict.centKatz;
+            document.getElementById('btnCentClose').textContent = dict.centClose;
+            document.getElementById('btnCentBetween').textContent = dict.centBetween;
+
+            document.getElementById('lblBtnMetric').textContent = dict.btnMetric;
+            document.getElementById('lblBtnTutorial').textContent = dict.btnTutorial;
+            document.getElementById('btnStartTutorial').title = dict.btnTutorialTitle;
+
+            // Left Panel: Adjacency Matrix
+            document.getElementById('lblMatrixTitle').textContent = dict.matrixTitle;
+            document.getElementById('lblMatrixSub').innerHTML = dict.matrixSub;
+            document.getElementById('lblMirrorToggle').innerHTML = dict.mirrorToggle;
+            document.getElementById('btnSymmetrize').textContent = dict.btnSymmetrize;
+            document.getElementById('btnSymmetrize').title = dict.btnSymmetrizeTitle;
+            document.getElementById('lblActiveEdge').textContent = dict.activeEdge;
+            document.getElementById('lblNoEdge').textContent = dict.noEdge;
+            if (!state.interaction.highlightedCell) {
+                document.getElementById('matrixHoverInfo').textContent = dict.matrixHoverDefault;
+            }
+
+            // Right Panel: Graph Canvas & Legend & Tooltip
+            document.getElementById('lblGraphPanelTitle').textContent = dict.graphPanelTitle;
+            document.getElementById('lblDottedClusters').textContent = dict.dottedClusters;
+            document.getElementById('lblForceLayout').textContent = dict.forceLayout;
+            document.getElementById('lblBtnCircle').textContent = dict.btnCircle;
+            document.getElementById('lblBtnFit').textContent = dict.btnFit;
+            document.getElementById('legendTitle').textContent = dict.legendTitles[state.centralityMode];
+            document.getElementById('lblNormalized').textContent = dict.normalizedLabel;
+            document.getElementById('lblLegendMed').textContent = dict.medLabel;
+
+            document.getElementById('lblTtInOut').textContent = dict.ttInOut;
+            document.getElementById('lblTtEigen').textContent = `${dict.centEigen}:`;
+            document.getElementById('lblTtKatz').textContent = `${dict.centKatz}:`;
+            document.getElementById('lblTtClose').textContent = `${dict.centClose}:`;
+            document.getElementById('lblTtBetween').textContent = `${dict.centBetween}:`;
+
+            document.getElementById('lblDragHint').textContent = dict.dragHint;
+            document.getElementById('lblClusterHint').textContent = dict.clusterHint;
+
+            // Modal Labels
+            document.getElementById('lblModalTitle').textContent = dict.modalTitle;
+            document.getElementById('lblModalSub').textContent = dict.modalSub;
+            document.getElementById('lblHistTitle').textContent = dict.histTitle;
+            document.getElementById('lblHistSub').textContent = dict.histSub;
+            document.getElementById('histBtnAll').textContent = dict.histBtnAll;
+            document.getElementById('histBtnTotal').textContent = dict.histBtnTotal;
+            document.getElementById('lblTableTitle').textContent = dict.tableTitle;
+            document.getElementById('lblTableSortHint').textContent = dict.tableSortHint;
+            document.getElementById('thNode').textContent = dict.thNode;
+            document.getElementById('thCluster').textContent = dict.thCluster;
+            document.getElementById('thInDeg').textContent = dict.thInDeg;
+            document.getElementById('thOutDeg').textContent = dict.thOutDeg;
+            document.getElementById('thTotalDeg').textContent = dict.thTotalDeg;
+            document.getElementById('thEigen').textContent = dict.thEigen;
+            document.getElementById('thKatz').textContent = dict.thKatz;
+            document.getElementById('thClose').textContent = dict.thClose;
+            document.getElementById('thBetween').textContent = dict.thBetween;
+            document.getElementById('lblModalFooterNote').textContent = dict.modalFooterNote;
+            document.getElementById('btnModalClose').textContent = dict.btnModalClose;
+
+            // Refresh dynamic values, modal, and tutorial if open
+            updateTopBarSummaryUI();
+            if (!document.getElementById('metricModalBackdrop').classList.contains('hidden')) {
+                renderMetricTable();
+                renderDegreeHistogram();
+            }
+            if (tutorialActive) {
+                renderTutorialStep();
+            }
+        }
 
         function initNodesPosition(count, preserveExisting = true) {
             const canvas = document.getElementById('graphCanvas');
@@ -814,12 +1235,14 @@
 
                 inp.addEventListener('mouseenter', () => {
                     state.interaction.highlightedCell = { r, c };
+                    const dict = t();
                     document.getElementById('matrixHoverInfo').textContent =
-                        `A[${r + 1}, ${c + 1}] = ${state.matrix[r][c]} (${r === c ? 'Self-loop' : `Edge ${r + 1} → ${c + 1}`})`;
+                        `A[${r + 1}, ${c + 1}] = ${state.matrix[r][c]} (${r === c ? dict.selfLoop : `${dict.edgePrefix} ${r + 1} → ${c + 1}`})`;
                 });
 
                 inp.addEventListener('mouseleave', () => {
                     state.interaction.highlightedCell = null;
+                    document.getElementById('matrixHoverInfo').textContent = t().matrixHoverDefault;
                 });
             });
         }
@@ -1157,22 +1580,23 @@
 
         function updateTopBarSummaryUI() {
             const g = state.metrics.global;
+            const dict = t();
             document.getElementById('statDiameter').textContent = g.diameter;
             document.getElementById('statAvgEdges').textContent = g.avgEdgesPerNode.toFixed(2);
-            document.getElementById('statTotalEdges').textContent = `(${g.totalEdges} total)`;
+            document.getElementById('statTotalEdges').textContent = `(${g.totalEdges} ${dict.totalSuffix})`;
             document.getElementById('statDensity').textContent = g.density.toFixed(3);
             document.getElementById('statAvgGeodesic').textContent = g.avgGeodesic.toFixed(3);
             document.getElementById('statClustersCount').textContent =
-                `${g.clusterCount} ${g.clusterCount === 1 ? 'cluster' : 'clusters'}`;
+                `${g.clusterCount} ${g.clusterCount === 1 ? dict.clusterSingular : dict.clusterPlural}`;
             document.getElementById('clusterSummaryText').textContent =
-                `${g.clusterCount} ${g.clusterCount === 1 ? 'Community Cluster' : 'Community Clusters'} Encircled`;
+                `${g.clusterCount} ${g.clusterCount === 1 ? dict.clusterEncircledSingular : dict.clusterEncircledPlural}`;
 
             const badge = document.getElementById('graphTypeBadge');
             if (g.isDirected) {
-                badge.textContent = 'Directed Graph';
+                badge.textContent = dict.directedGraph;
                 badge.className = 'text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
             } else {
-                badge.textContent = 'Undirected Graph';
+                badge.textContent = dict.undirectedGraph;
                 badge.className = 'text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200';
             }
 
@@ -1180,19 +1604,14 @@
             const values = state.metrics.nodes.map(m => m[state.centralityMode]);
             const minVal = values.length ? Math.min(...values) : 0;
             const maxVal = values.length ? Math.max(...values) : 1;
-            document.getElementById('legendMin').textContent = `Min: ${minVal.toFixed(3)}`;
-            document.getElementById('legendMax').textContent = `Max: ${maxVal.toFixed(3)}`;
+            document.getElementById('legendMin').textContent = `${dict.minPrefix}: ${minVal.toFixed(3)}`;
+            document.getElementById('legendMax').textContent = `${dict.maxPrefix}: ${maxVal.toFixed(3)}`;
         }
 
         function setCentralityMode(mode) {
             state.centralityMode = mode;
-            const titles = {
-                eigenvector: 'Eigenvector Centrality',
-                katz: 'Katz Centrality',
-                closeness: 'Closeness Centrality',
-                betweenness: 'Betweenness Centrality'
-            };
-            document.getElementById('legendTitle').textContent = titles[mode];
+            const dict = t();
+            document.getElementById('legendTitle').textContent = dict.legendTitles[mode];
 
             document.querySelectorAll('.centrality-btn').forEach(btn => {
                 if (btn.dataset.centrality === mode) {
@@ -1320,7 +1739,7 @@
                 }
                 ctx.setLineDash([]);
                 ctx.font = '600 10px Inter, sans-serif';
-                const label = `Cluster ${cId}`;
+                const label = `${t().clusterWord} ${cId}`;
                 const textWidth = ctx.measureText(label).width;
                 const pillW = textWidth + 12;
                 const pillH = 18;
@@ -1642,6 +2061,7 @@
             const rows = [...state.metrics.nodes];
             const k = state.tableSortKey;
             const dir = state.tableSortAsc ? 1 : -1;
+            const dict = t();
 
             rows.sort((a, b) => (a[k] - b[k]) * dir);
 
@@ -1659,12 +2079,12 @@
                 return `<tr class="hover:bg-slate-50/90 transition">
                     <td class="py-2.5 px-3 font-bold text-slate-800 flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full inline-block shadow-2xs" style="background:${dotColor}"></span>
-                        Node ${row.id}
+                        ${dict.nodeWord} ${row.id}
                     </td>
                     <td class="py-2.5 px-3">
                         <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold"
                               style="background:${cStyle.badgeBg}; color:${cStyle.badgeText}; border:1px solid ${cStyle.stroke}33">
-                            Cluster #${row.cluster}
+                            ${dict.clusterWord} #${row.cluster}
                         </span>
                     </td>
                     <td class="py-2.5 px-3 text-right font-medium text-slate-700">${row.inDeg}</td>
@@ -1799,12 +2219,13 @@
 
             // Legend at top right
             if (state.histogramMode === 'all') {
+                const dict = t();
                 const legendItems = [
-                    { label: 'Total Deg', color: '#4f46e5' },
-                    { label: 'In-Degree', color: '#06b6d4' },
-                    { label: 'Out-Degree', color: '#f59e0b' }
+                    { label: dict.histLegendTotal, color: '#4f46e5' },
+                    { label: dict.histLegendIn, color: '#06b6d4' },
+                    { label: dict.histLegendOut, color: '#f59e0b' }
                 ];
-                let lx = w - padRight - 240;
+                let lx = w - padRight - 265;
                 legendItems.forEach(item => {
                     ctx.fillStyle = item.color;
                     ctx.beginPath();
@@ -1815,7 +2236,7 @@
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(item.label, lx + 14, 11);
-                    lx += 82;
+                    lx += 90;
                 });
             }
         }
@@ -1869,11 +2290,12 @@
                 }
                 const m = state.metrics.nodes[node.id];
                 if (!m) return;
+                const dict = t();
 
                 tooltip.classList.remove('hidden');
-                document.getElementById('ttNodeName').textContent = `Node ${m.id}`;
-                document.getElementById('ttClusterBadge').textContent = `Cluster #${m.cluster}`;
-                document.getElementById('ttInOut').textContent = `${m.inDeg} / ${m.outDeg} (Tot: ${m.totalDeg})`;
+                document.getElementById('ttNodeName').textContent = `${dict.nodeWord} ${m.id}`;
+                document.getElementById('ttClusterBadge').textContent = `${dict.clusterWord} #${m.cluster}`;
+                document.getElementById('ttInOut').textContent = `${m.inDeg} / ${m.outDeg} (${dict.ttTot}: ${m.totalDeg})`;
                 document.getElementById('ttEigen').textContent = m.eigenvector.toFixed(4);
                 document.getElementById('ttKatz').textContent = m.katz.toFixed(4);
                 document.getElementById('ttClose').textContent = m.closeness.toFixed(4);
@@ -1973,61 +2395,59 @@
             recalculateAllMetrics();
         }
 
-        const TUTORIAL_STEPS = [
-            {
-                targetId: 'matrixPanelSection',
-                title: '1. Adjacency Matrix Input',
-                subtitle: 'Build & Edit Your Network (2×2 to 15×15)',
-                icon: 'ph-matrix-logo',
-                desc: 'Use the Matrix Size slider in the top bar to pick any dimension from 2 to 15. Click any cell A[i, j] in this grid to toggle connections (0 or 1) or type custom edge weights.',
-                tip: 'Uncheck "Mirror (Undirected)" at the top of this panel anytime you want to create asymmetric directed edges!',
-                preferredPlacement: 'right'
-            },
-            {
-                targetId: 'graphPanelSection',
-                title: '2. Live Graph & Dotted Clusters',
-                subtitle: 'Real-Time Topology & Community Detection',
-                icon: 'ph-share-network',
-                desc: 'Your graph updates immediately as you edit the matrix. Nodes can be dragged around freely, and smooth dotted lines automatically encircle groups of nodes that form community clusters.',
-                tip: 'Hover over any node to inspect its exact In/Out degree and all four centrality scores at a glance.',
-                preferredPlacement: 'left'
-            },
-            {
-                targetId: 'centralitySelectorGroup',
-                title: '3. Centrality Color-Coding',
-                subtitle: 'Eigenvector, Katz, Closeness & Betweenness',
-                icon: 'ph-palette',
-                desc: 'Switch between the four core centrality measures here. The graph immediately re-colors and scales every node from cool blue (low score) to vibrant rose (high centrality).',
-                tip: 'Try clicking through all 4 measures to see how bridge nodes light up under Betweenness while hub nodes dominate Eigenvector!',
-                preferredPlacement: 'bottom'
-            },
-            {
-                targetId: 'globalSummaryStripe',
-                title: '4. Global Network Summary Stripe',
-                subtitle: 'Macro-Level Structural Indicators',
-                icon: 'ph-gauge',
-                desc: 'This top stripe continuously tracks your whole network’s vital statistics: Network Diameter (longest shortest path), Average Edges per Node, Network Density, and Average Geodesic Distance.',
-                tip: 'Try clicking the topology Presets (like Star, Ring, or Clustered) to watch these global metrics shift in real time.',
-                preferredPlacement: 'bottom'
-            },
-            {
-                targetId: 'btnOpenMetrics',
-                title: '5. Detailed "Metric" Table & Histogram',
-                subtitle: 'Node-Level Breakdown & Degree Distribution',
-                icon: 'ph-table',
-                desc: 'Click the "Metric" button to open a dedicated analytics window featuring a sortable table of every node’s In-Degree, Out-Degree, and Centrality values, plus a Degree Distribution Histogram.',
-                tip: 'You can replay this quick guide anytime by clicking the "Tutorial" button right next to Metric!',
-                preferredPlacement: 'bottom-left'
-            }
-        ];
-
         let currentTutorialStep = 0;
         let tutorialActive = false;
+
+        function preventTutorialScrollEvent(e) {
+            if (!tutorialActive) return;
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        function preventTutorialScrollKeys(e) {
+            if (!tutorialActive) return;
+            const scrollKeys = [' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'];
+            if (scrollKeys.includes(e.key) || [32, 33, 34, 35, 36, 38, 40].includes(e.keyCode)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+
+        function setTutorialScrollLock(locked) {
+            const htmlEl = document.documentElement;
+            const bodyEl = document.body;
+            const matrixViewport = document.getElementById('matrixScrollViewport');
+
+            if (locked) {
+                htmlEl.classList.add('tutorial-scroll-lock');
+                bodyEl.classList.add('tutorial-scroll-lock');
+                if (matrixViewport) {
+                    matrixViewport.scrollTop = 0;
+                    matrixViewport.scrollLeft = 0;
+                    matrixViewport.classList.add('tutorial-internal-scroll-lock');
+                }
+                window.addEventListener('wheel', preventTutorialScrollEvent, { passive: false, capture: true });
+                window.addEventListener('touchmove', preventTutorialScrollEvent, { passive: false, capture: true });
+                window.addEventListener('keydown', preventTutorialScrollKeys, { passive: false, capture: true });
+            } else {
+                htmlEl.classList.remove('tutorial-scroll-lock');
+                bodyEl.classList.remove('tutorial-scroll-lock');
+                if (matrixViewport) {
+                    matrixViewport.classList.remove('tutorial-internal-scroll-lock');
+                }
+                window.removeEventListener('wheel', preventTutorialScrollEvent, { capture: true });
+                window.removeEventListener('touchmove', preventTutorialScrollEvent, { capture: true });
+                window.removeEventListener('keydown', preventTutorialScrollKeys, { capture: true });
+            }
+        }
 
         function startTutorial() {
             closeMetricModal();
             currentTutorialStep = 0;
             tutorialActive = true;
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            setTutorialScrollLock(true);
             const overlay = document.getElementById('tutorialOverlay');
             overlay.classList.remove('hidden');
             renderTutorialStep();
@@ -2035,12 +2455,14 @@
 
         function endTutorial() {
             tutorialActive = false;
+            setTutorialScrollLock(false);
             const overlay = document.getElementById('tutorialOverlay');
             overlay.classList.add('hidden');
         }
 
         function nextTutorialStep() {
-            if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
+            const steps = t().tutSteps;
+            if (currentTutorialStep < steps.length - 1) {
                 currentTutorialStep++;
                 renderTutorialStep();
             } else {
@@ -2056,23 +2478,48 @@
         }
 
         function goToTutorialStep(idx) {
-            if (idx >= 0 && idx < TUTORIAL_STEPS.length) {
+            const steps = t().tutSteps;
+            if (idx >= 0 && idx < steps.length) {
                 currentTutorialStep = idx;
                 renderTutorialStep();
             }
         }
 
+        function anchorTutorialTargetIntoView(targetEl) {
+            //Temporarily unlock overflow so we can synchronously snap the viewport if on a small mobile screen
+            document.documentElement.classList.remove('tutorial-scroll-lock');
+            document.body.classList.remove('tutorial-scroll-lock');
+
+            const vh = window.innerHeight;
+            const rect = targetEl.getBoundingClientRect();
+            const isHeaderItem = targetEl.closest('header') !== null;
+
+            if (isHeaderItem || window.innerWidth >= 1024) {
+                window.scrollTo(0, 0);
+            } else if (rect.top < 64 || rect.bottom > vh - 20) {
+                const targetTop = window.scrollY + rect.top - 76;
+                window.scrollTo(0, Math.max(0, targetTop));
+            }
+
+            // Re-lock immediately in the same synchronous frame before measuring
+            document.documentElement.classList.add('tutorial-scroll-lock');
+            document.body.classList.add('tutorial-scroll-lock');
+        }
+
         function renderTutorialStep() {
             if (!tutorialActive) return;
-            const step = TUTORIAL_STEPS[currentTutorialStep];
+            const dict = t();
+            const steps = dict.tutSteps;
+            const step = steps[currentTutorialStep];
             const targetEl = document.getElementById(step.targetId);
             if (!targetEl) return;
 
-            // Scroll target gently into view on smaller screens
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Synchronously anchor target into view and lock scroll so getBoundingClientRect() is 100% stationary
+            anchorTutorialTargetIntoView(targetEl);
 
             // Update card text content
-            document.getElementById('tutStepCounter').textContent = `Step ${currentTutorialStep + 1} of ${TUTORIAL_STEPS.length}`;
+            document.getElementById('tutStepCounter').textContent = dict.tutStepOf(currentTutorialStep + 1, steps.length);
+            document.getElementById('tutBtnSkip').textContent = dict.tutSkip;
             document.getElementById('tutStepTitle').textContent = step.title;
             document.getElementById('tutStepSubtitle').textContent = step.subtitle;
             document.getElementById('tutStepDesc').textContent = step.desc;
@@ -2081,17 +2528,18 @@
 
             // Update Back / Next buttons
             const btnBack = document.getElementById('tutBtnBack');
+            btnBack.textContent = dict.tutBack;
             btnBack.style.visibility = currentTutorialStep === 0 ? 'hidden' : 'visible';
 
-            const isLast = currentTutorialStep === TUTORIAL_STEPS.length - 1;
-            document.getElementById('tutBtnNextText').textContent = isLast ? 'Start Exploring' : 'Next';
+            const isLast = currentTutorialStep === steps.length - 1;
+            document.getElementById('tutBtnNextText').textContent = isLast ? dict.tutFinish : dict.tutNext;
             document.getElementById('tutBtnNextIcon').className = isLast ? 'ph-bold ph-check text-xs' : 'ph-bold ph-arrow-right text-xs';
 
             // Render progress dots
             const dotsContainer = document.getElementById('tutDotsContainer');
-            dotsContainer.innerHTML = TUTORIAL_STEPS.map((_, idx) => {
+            dotsContainer.innerHTML = steps.map((_, idx) => {
                 const active = idx === currentTutorialStep;
-                return `<button onclick="goToTutorialStep(${idx})" aria-label="Go to step ${idx + 1}"
+                return `<button onclick="goToTutorialStep(${idx})" aria-label="Step ${idx + 1}"
                     class="h-2 rounded-full transition-all cursor-pointer ${active ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-300 hover:bg-slate-400'}"></button>`;
             }).join('');
 
@@ -2100,7 +2548,7 @@
 
         function positionSpotlightAndCard() {
             if (!tutorialActive) return;
-            const step = TUTORIAL_STEPS[currentTutorialStep];
+            const step = t().tutSteps[currentTutorialStep];
             const targetEl = document.getElementById(step.targetId);
             if (!targetEl) return;
 
@@ -2231,6 +2679,7 @@
 
             setupCanvasInteractions();
             applyPreset('clustered');
+            applyLanguageUI(); // Ensure Spanish ('es') is applied across all UI elements on startup
 
             // Launch interactive spotlight tutorial automatically on startup
             setTimeout(() => {
